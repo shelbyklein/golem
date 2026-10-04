@@ -26,10 +26,10 @@ flowchart LR
 - [x] EMAIL-2 Target watcher failure handling/filter prompt and job context; acceptance: behavioral sweep harness and policy fixtures.
 - [x] EMAIL-3 Build/install only Golem service changes after policy/app backup; acceptance: signature, installed sweep and duplicate suppression.
 - [ ] EMAIL-4 Resolve narrow APNs grant with Chatterbox; acceptance: same-service key access and Apple acceptance; physical receipt requires Shelby.
-- [ ] EMAIL-5 Record evidence and commit source/plan/test changes; keep issue open for physical receipt/permission if outstanding.
+- [x] EMAIL-5 Record evidence and commit source/plan/test changes; keep issue open for physical receipt/permission if outstanding.
 
 ## Work preparation
-Scope confirmed by direct user repair-now instruction. Linear execution: one session owns Golem source; Chatterbox session coordinates its existing APNs sender. Executor: current GPT-6 session settings; precise runtime model variant/effort unavailable, no model override. An optional settings question is pending; runtime repair is explicitly authorized now. Issue: https://github.com/shelbyklein/golem/issues/1; local: plans/email-watch-repair-2026-10-04.md. Readiness: scope, checks, diagram, tasks, rollback and exclusions recorded; runtime model metadata limitation disclosed.
+Scope confirmed by direct user repair-now instruction. Linear execution: one session owns Golem source; Chatterbox session coordinates its existing APNs sender. Executor: GPT-6.1 Sol, Medium effort, verified in Chatterbox’s active model control. No model override; runtime repair explicitly authorized now. Issue: https://github.com/shelbyklein/golem/issues/1; local: plans/email-watch-repair-2026-10-04.md. Readiness: scope, checks, diagram, tasks, rollback and exclusions recorded; runtime model metadata limitation disclosed.
 
 ## Boundaries and open questions
 No global auth/proxy edits, email sends/mutations, credential export, broad Keychain grants or unrelated shared Core edits. Preserve weekday 8 AM/3 PM jobs, waiting/finished jobs, read-only contextual school/appointments/life admin and USA Archery priorities, routine quiet, message identities, chats and pairing. Phone ACL permission pending; do independent watcher work while waiting. No source changes in Chatterbox by this session.
@@ -46,4 +46,4 @@ Backups: ~/Library/Application Support/Golem-InstallBackups/email-pipeline-20261
 - Both behavioral harnesses passed: six runner outcomes, actual isolated daemon failed-cursor preservation, overlapping-message dedupe, visible missing executable, restart dedupe. First runner fixture failed due a Python reserved-keyword error in the fixture; corrected fixture and all checks passed.
 - Build and deep/strict signature checks passed; backed up and installed /Applications/Golem.app; only golemd restarted.
 - Phone remains pending: Golem iPhone registered with enabled sandbox push, but the existing APNs key permits the Chatterbox app, not chatterboxd. Chatterbox confirmed ACL metadata only, no secret export. No grant changed; user permission requested. Apple acceptance/physical receipt not established.
-- Runtime model metadata question remains unanswered; continued with current session settings per explicit repair-now authorization. No subagents spawned.
+- Runtime model metadata later verified in the active Chatterbox model control: gpt-6.1-sol, Medium effort. No subagents spawned.

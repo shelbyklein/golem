@@ -183,6 +183,7 @@
 		D73BF51BC0168997321E9F56 /* CloneFromGitHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C72BEEB03FD3A7853A6B4DC9 /* CloneFromGitHubView.swift */; };
 		D76BF62E1A5E590FE991A870 /* ChatSession+Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E5DF0205FB514B074DDB5D /* ChatSession+Remote.swift */; };
 		D77C9B3B10702F782CABA780 /* ChatComputer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE6B979ADBFCC125397FC0A /* ChatComputer.swift */; };
+		D83C94D471EFA56AD0F2CF25 /* ProjectIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = D78627ECD492CC2887A68E27 /* ProjectIcons.swift */; };
 		D89C8D3C64D429305DA3ACD7 /* MobileHTMLPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270568B40AFD3896767E1C41 /* MobileHTMLPreview.swift */; };
 		D9AC6AE7D4C4DD46C43D22FF /* GolemCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E1D4F004807A7A06EC5F02 /* GolemCapture.swift */; };
 		DB57C21E57252804163E5B67 /* DotConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74830E078C04DDFC9156213C /* DotConversation.swift */; };
@@ -389,6 +390,7 @@
 		D33FF59E9F1FC061373AE426 /* ModelPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPicker.swift; sourceTree = "<group>"; };
 		D6095B4B6F77A9DAA8DA54DB /* StarterPrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterPrompts.swift; sourceTree = "<group>"; };
 		D616C0EFF8D0D3EC1B01047E /* IssueToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueToolbar.swift; sourceTree = "<group>"; };
+		D78627ECD492CC2887A68E27 /* ProjectIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectIcons.swift; sourceTree = "<group>"; };
 		D9C89E6F73EA94453A141329 /* RuntimePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimePaths.swift; sourceTree = "<group>"; };
 		DB0C9AFFC82D35E00D9EFE9C /* GolemIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemIntegration.swift; sourceTree = "<group>"; };
 		DB36C0131F476E8D0371604E /* AssistantInstructions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantInstructions.swift; sourceTree = "<group>"; };
@@ -484,6 +486,7 @@
 				3F17D1A4655DC36CABCEE63E /* PinsSection.swift */,
 				DEF5F332711A43ED73438ECD /* PluginsSettingsView.swift */,
 				717579D7CBB7B88A53155D89 /* PreviewDestination.swift */,
+				D78627ECD492CC2887A68E27 /* ProjectIcons.swift */,
 				6E4E1C5789DAFF7E37AD59B7 /* QuickSwitcher.swift */,
 				5B010A77105A6457EA5CA8F5 /* ReaderStyle.swift */,
 				C944F26BD3A9441A51D33392 /* SettingsView.swift */,
@@ -968,6 +971,7 @@
 				B62DE5736DC7A52C4B2AE009 /* PinsSection.swift in Sources */,
 				4FB231BE4C91607C85125489 /* PluginsSettingsView.swift in Sources */,
 				51AF319ED12486AC11702BA5 /* PreviewDestination.swift in Sources */,
+				D83C94D471EFA56AD0F2CF25 /* ProjectIcons.swift in Sources */,
 				E3B4264AAABDCB2BCE963D49 /* ProjectSorting.swift in Sources */,
 				8A36C9FEBAB21BC454B6AC34 /* Prompts.swift in Sources */,
 				158ABA56FFA3E3395B321112 /* QuickSwitcher.swift in Sources */,
