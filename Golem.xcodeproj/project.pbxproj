@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		05CC7EE6B6757AB711665D93 /* ModelPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = D33FF59E9F1FC061373AE426 /* ModelPicker.swift */; };
+		0716E0DF564DA39D165DB024 /* StarterPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6095B4B6F77A9DAA8DA54DB /* StarterPrompts.swift */; };
 		0927FAF6D60E5428BAB38443 /* ReaderStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B010A77105A6457EA5CA8F5 /* ReaderStyle.swift */; };
 		09DD811D411BB9DCB495985B /* AssistantConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 885D06BA0221CF36680E5CFA /* AssistantConfiguration.swift */; };
 		0AF4926D03C84BE96EF7CCFE /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888327FEAF92133119A3815F /* main.swift */; };
@@ -18,6 +19,7 @@
 		0D215E593D0C7071C935C32A /* BackgroundTasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BCF0E81CAA66205A3BCBF2 /* BackgroundTasks.swift */; };
 		0D6FA1E234E3E6DDC1B2C5EC /* ChatSwitchTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99547DC3FD8DD13C23C5F203 /* ChatSwitchTransition.swift */; };
 		13640908AD1BE918A2CA552D /* RuntimeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FA199580F24E93A8970608F /* RuntimeClient.swift */; };
+		152C6C149C9A152C3F2B67C5 /* StarterPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6095B4B6F77A9DAA8DA54DB /* StarterPrompts.swift */; };
 		158ABA56FFA3E3395B321112 /* QuickSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4E1C5789DAFF7E37AD59B7 /* QuickSwitcher.swift */; };
 		190E77C7FFE8A0A5A965FCBC /* ChatSettingsCog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52C83E45687C7B3E05A0AE73 /* ChatSettingsCog.swift */; };
 		19DFC3CE7F870E9728C2E591 /* ChatSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2969135A8125DCF65C916C /* ChatSession.swift */; };
@@ -388,6 +390,7 @@
 		CC7F63D1DEEDDF4A0A90E51A /* MobileGolem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileGolem.swift; sourceTree = "<group>"; };
 		CDDA6F67E48DDA2B5202743C /* Tools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
 		D33FF59E9F1FC061373AE426 /* ModelPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelPicker.swift; sourceTree = "<group>"; };
+		D6095B4B6F77A9DAA8DA54DB /* StarterPrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterPrompts.swift; sourceTree = "<group>"; };
 		D616C0EFF8D0D3EC1B01047E /* IssueToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueToolbar.swift; sourceTree = "<group>"; };
 		D9C89E6F73EA94453A141329 /* RuntimePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimePaths.swift; sourceTree = "<group>"; };
 		DB0C9AFFC82D35E00D9EFE9C /* GolemIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemIntegration.swift; sourceTree = "<group>"; };
@@ -673,6 +676,7 @@
 				37E8C935C250AE977402D207 /* GolemRig.swift */,
 				BEEF42F010A3F464504C831F /* GolemRigView.swift */,
 				7248F29CC1AC287D9C8F3F6F /* MediaKind.swift */,
+				D6095B4B6F77A9DAA8DA54DB /* StarterPrompts.swift */,
 			);
 			name = Shared;
 			path = Core/Shared;
@@ -985,6 +989,7 @@
 				D661C6520FA4C8EB5E18433B /* Secrets.swift in Sources */,
 				B00B6C6C8F6DA417B3F757C2 /* SettingsView.swift in Sources */,
 				E41576582BF4828AB18E782A /* SlashCommands.swift in Sources */,
+				152C6C149C9A152C3F2B67C5 /* StarterPrompts.swift in Sources */,
 				3403FF132CB75C6B8D0121F7 /* Studio.swift in Sources */,
 				335ACBF2BFA72DA6CF7649D4 /* StudioInstructionsSheet.swift in Sources */,
 				344BB03AF378FE4CB1FFBB4B /* Studios.swift in Sources */,
@@ -1033,6 +1038,7 @@
 				CA6818A8C8C9AE8BF6ED02F1 /* PinsAndExtras.swift in Sources */,
 				F07500B604ECE219EB17E16D /* ReaderStyle.swift in Sources */,
 				4C0A27D2A6E84B92365DC0E0 /* SketchView.swift in Sources */,
+				0716E0DF564DA39D165DB024 /* StarterPrompts.swift in Sources */,
 				C93FC01CFE3F39A24A23D99F /* TranscriptViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
