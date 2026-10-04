@@ -1166,6 +1166,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.shelbyklein.Golem;
 				PRODUCT_NAME = Golem;
 				SDKROOT = macosx;
@@ -1235,6 +1236,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.shelbyklein.Golem;
 				PRODUCT_NAME = Golem;
 				SDKROOT = macosx;

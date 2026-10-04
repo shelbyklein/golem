@@ -16,6 +16,7 @@ targets:
   Golem:
     type: application
     platform: macOS
+    deploymentTarget: '15.0'
     sources:
     - path: Core/Chatterbox
     - path: Core/ChatterboxRuntime

@@ -2,16 +2,69 @@ import SwiftUI
 import AppKit
 
 @main struct GolemApp:App {
-    @State private var model=AppModel()
+    @NSApplicationDelegateAdaptor private var delegate:GolemAppDelegate
+    @State private var model:AppModel
+    init() {
+        // Golem lives in the mini, shown once his conversation arrives from the service;
+        // showing it sooner would create a second, empty assistant.
+        AppPreferences.defaults.set(false,forKey:GolemMiniWindow.visibleKey)
+        let model=AppModel()
+        _model=State(initialValue:model)
+        GolemAppDelegate.model=model
+    }
     var body:some Scene {
-        WindowGroup("Golem",id:"main"){
+        Window("Golem",id:"main"){
             GolemRoot().environment(model).defaultAppStorage(AppPreferences.defaults)
         }
         .defaultSize(width:1000,height:760)
-        .commands {
-            CommandGroup(replacing:.newItem){Button("Show Golem Mini"){model.showingDot.toggle()}.keyboardShortcut("j")}
-        }
+        .defaultLaunchBehavior(.suppressed)
+        .commands {GolemCommands(model:model)}
         Settings {GolemServiceSettings().environment(model).defaultAppStorage(AppPreferences.defaults)}
+    }
+}
+
+final class GolemAppDelegate:NSObject,NSApplicationDelegate {
+    @MainActor static var model:AppModel?
+    @MainActor func applicationDidFinishLaunching(_ notification:Notification) {
+        guard let model=Self.model else{return}
+        Task{await GolemLaunch.run(model)}
+    }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication)->Bool {false}
+}
+
+struct GolemCommands:Commands {
+    let model:AppModel
+    @Environment(\.openWindow) private var openWindow
+    var body:some Commands {
+        let _ = model.revealMainChatWindow={[openWindow] in openWindow(id:"main")}
+        CommandGroup(replacing:.newItem){
+            Button("Chat with Golem"){model.dotMiniWindow?.openFullChat() ?? openWindow(id:"main")}.keyboardShortcut("o")
+            // Before his conversation arrives, showing the mini would invent an empty local one.
+            Button(model.showingDot ? "Hide Golem Mini":"Show Golem Mini"){model.showingDot.toggle()}.keyboardShortcut("j").disabled(model.dot==nil)
+        }
+    }
+}
+
+/// Startup work that used to wait for the main window, which no longer opens at launch.
+@MainActor enum GolemLaunch {
+    static func run(_ model:AppModel) async {
+        Attention.shared.start(model:model)
+        #if DEBUG
+        let environment=ProcessInfo.processInfo.environment
+        if environment["GOLEM_TEST_ROLE_CHECK"]=="1"{await GolemCapture.runIfRequested(model);return}
+        if environment["GOLEM_TEST_CAPTURE"] != nil || environment["GOLEM_TEST_PERFORMANCE"] != nil {
+            while model.revealMainChatWindow==nil {try? await Task.sleep(for:.milliseconds(100))}
+            model.revealMainChatWindow?()
+        }
+        #endif
+        while !RuntimeClient.shared.connected {try? await Task.sleep(for:.milliseconds(100))}
+        do{_ = try await RuntimeClient.shared.request("ensureAssistant")}catch{Diagnostics.note(error.localizedDescription)}
+        GolemAvatar.shared.refreshIfStale()
+        for _ in 0..<100 where model.dot==nil {try? await Task.sleep(for:.milliseconds(100))}
+        if model.dot != nil {model.showingDot=true}
+        #if DEBUG
+        await GolemCapture.runIfRequested(model)
+        #endif
     }
 }
 
@@ -43,18 +96,8 @@ struct GolemRoot:View {
                 try? await Task.sleep(for:.seconds(3))
             }
         }
-        .task {
-            Attention.shared.start(model:model)
-            #if DEBUG
-            if ProcessInfo.processInfo.environment["GOLEM_TEST_ROLE_CHECK"]=="1"{await GolemCapture.runIfRequested(model);return}
-            #endif
-            while !RuntimeClient.shared.connected && !Task.isCancelled {try? await Task.sleep(for:.milliseconds(100))}
-            if !Task.isCancelled {do{_ = try await RuntimeClient.shared.request("ensureAssistant")}catch{Diagnostics.note(error.localizedDescription)}}
-            GolemAvatar.shared.refreshIfStale()
-            #if DEBUG
-            await GolemCapture.runIfRequested(model)
-            #endif
-        }
+        // Closing the chat window sends Golem back to the mini.
+        .onDisappear{if !model.showingDot,model.dot != nil {model.showingDot=true}}
     }
 }
 
