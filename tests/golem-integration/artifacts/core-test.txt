@@ -1,0 +1,40 @@
+Chatterbox/Engine/ChatSession+Shell.swift:114:13: warning: 'posix_spawn_file_actions_addchdir_np' was deprecated in macOS 26.0: posix_spawn_file_actions_addchdir(3) has replaced posix_spawn_file_actions_addchdir_np(3) [#DeprecatedDeclaration]
+112 |             posix_spawnattr_init(&attributes)
+113 |             defer { posix_spawn_file_actions_destroy(&actions); posix_spawnattr_destroy(&attributes) }
+114 |             posix_spawn_file_actions_addchdir_np(&actions, folder)
+    |             `- warning: 'posix_spawn_file_actions_addchdir_np' was deprecated in macOS 26.0: posix_spawn_file_actions_addchdir(3) has replaced posix_spawn_file_actions_addchdir_np(3) [#DeprecatedDeclaration]
+115 |             posix_spawn_file_actions_addopen(&actions, 0, "/dev/null", O_RDONLY, 0)
+116 |             posix_spawn_file_actions_adddup2(&actions, writeFD, 1)
+
+Chatterbox/Engine/Secrets.swift:164:68: warning: 'kSecUseAuthenticationUIFail' was deprecated in macOS 11.0: Instead of kSecUseAuthenticationUI, use kSecUseAuthenticationContext and set LAContext.interactionNotAllowed property [#DeprecatedDeclaration]
+162 |         let status = SecItemCopyMatching([kSecClass: kSecClassGenericPassword, kSecAttrService: service, kSecAttrAccount: id.uuidString,
+163 |                                           kSecReturnData: true, kSecMatchLimit: kSecMatchLimitOne,
+164 |                                           kSecUseAuthenticationUI: kSecUseAuthenticationUIFail] as CFDictionary, &value)
+    |                                                                    `- warning: 'kSecUseAuthenticationUIFail' was deprecated in macOS 11.0: Instead of kSecUseAuthenticationUI, use kSecUseAuthenticationContext and set LAContext.interactionNotAllowed property [#DeprecatedDeclaration]
+165 |         guard status == errSecSuccess, let data = value as? Data else { return nil }
+166 |         return String(data: data, encoding: .utf8)
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+PASS duplicate writer refused
+PASS claude ordinary reply
+PASS claude user answer
+PASS claude user denial
+PASS claude steering
+PASS claude stop
+PASS claude queued while starting
+PASS claude active turn reattached headlessly
+PASS claude active replay without duplicate user row
+PASS codex ordinary reply
+PASS codex user answer
+PASS codex user denial
+PASS codex steering
+PASS codex stop
+PASS codex queued while starting
+PASS codex active turn reattached headlessly
+PASS codex active replay without duplicate user row
+PASS idempotent command returns original result
+PASS restart retains row counts
+PASS restart retains drafts
+PASS provider replay does not duplicate rows
+PASS Foundation runtime, both providers, restart and ownership
+Runtime test artifacts: /tmp/golem-runtime.PMLRJS

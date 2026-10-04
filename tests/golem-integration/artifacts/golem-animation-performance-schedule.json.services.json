@@ -1,0 +1,32 @@
+[
+  {
+    "run": 1,
+    "seconds": 60.005046624923125,
+    "service_cpu_percent": 0.01666526494430971
+  },
+  {
+    "run": 2,
+    "seconds": 60.00409866706468,
+    "service_cpu_percent": 0.033331056451611496
+  },
+  {
+    "run": 3,
+    "seconds": 60.00353179196827,
+    "service_cpu_percent": 0.0166656856710867
+  },
+  {
+    "run": 4,
+    "seconds": 60.005051458021626,
+    "service_cpu_percent": 0.01666526360200824
+  },
+  {
+    "run": 5,
+    "seconds": 60.002452999935485,
+    "service_cpu_percent": 0.016665985305652
+  },
+  {
+    "run": 6,
+    "seconds": 60.005079708993435,
+    "service_cpu_percent": 0.033330511511682
+  }
+]

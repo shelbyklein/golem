@@ -1,0 +1,22 @@
+[
+  {
+    "run": 1,
+    "seconds": 60.00509124994278,
+    "service_cpu_percent": 0.0
+  },
+  {
+    "run": 2,
+    "seconds": 60.008277791086584,
+    "service_cpu_percent": 0.01666436759744064
+  },
+  {
+    "run": 3,
+    "seconds": 60.00369791709818,
+    "service_cpu_percent": 0.0
+  },
+  {
+    "run": 4,
+    "seconds": 60.005096957902424,
+    "service_cpu_percent": 0.016665250965289945
+  }
+]

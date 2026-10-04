@@ -1,0 +1,5 @@
+Adopted offline store; original preferences retained. Services remain stopped.
+Already adopted; import retained.
+Backup restored and verified; post-adoption files retained in recovery export. Services remain stopped.
+PASS offline adoption retry, allowlisted preferences, pairing/draft/approval/offset identity, verified restore and additive recovery export
+Migration artifacts: /tmp/golem-migration.pexn8km4

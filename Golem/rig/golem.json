@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "about": "Golem rig. Units are rig px: y up from the ground, x from the centre line. Images are drawn at pixelScale image px per rig px. Angles in degrees, counter-clockwise positive. Times in seconds.",
+  "pixelScale": 0.5,
+  "stage": { "size": 2190, "groundFromTop": 0.85 },
+  "stones": {
+    "head":   { "image": "stone-head.png",   "w": 811, "h": 451 },
+    "belly":  { "image": "stone-belly.png",  "w": 477, "h": 293 },
+    "chest":  { "image": "stone-chest.png",  "w": 396, "h": 199 },
+    "foot":   { "image": "stone-foot.png",   "w": 290, "h": 139 },
+    "pebble": { "image": "stone-pebble.png", "w": 150, "h": 141 }
+  },
+  "eyes": {
+    "on": "head",
+    "sprites": [
+      { "image": "eye-L.png", "x": 228.4, "y": 280.7, "w": 81, "h": 81 },
+      { "image": "eye-R.png", "x": 621.45, "y": 280.35, "w": 79, "h": 80 }
+    ],
+    "blink": { "interval": 3.6, "jitter": 1.6, "duration": 0.2, "doubleChance": 0.3, "doubleGap": 0.35 },
+    "glance": { "interval": 7.5, "jitter": 2.5, "hold": 1.3, "ramp": 0.35, "x": 14, "y": -2 }
+  },
+  "nest": { "k": 0.10, "c": 4 },
+
+  "poses": {
+    "cairn": {
+      "about": "Main idle: face at the base, tapering stack, calm sway.",
+      "stack": {
+        "order": [["head", 0], ["belly", -6], ["chest", 8], ["foot", -4], ["pebble", 3]],
+        "sway": { "period": 6, "tip": 1.6, "tipPhase": 0.25, "bend": 6.5, "bendExp": 1.35, "lag": 1.1,
+                  "catch": 1.1, "catchLag": 2.2, "catchPhase": 0.7, "roll": true },
+        "breath": { "amp": 3, "period": 3, "lag": 1.4 }
+      },
+      "eyes": { "glances": true }
+    },
+    "balance": {
+      "about": "Waiting on you: head on top, smaller going down, balancing on the pebble with a wide sway.",
+      "stack": {
+        "order": [["pebble", 0], ["foot", 4], ["chest", -6], ["belly", 8], ["head", 0]],
+        "sway": { "period": 3, "tip": 10, "tipPhase": 0, "bend": 12, "bendExp": 1.3, "lag": 1.0,
+                  "catch": 2, "catchLag": 1.6, "catchPhase": -0.6, "roll": true },
+        "headSwing": { "amp": 7, "phase": 1.5 }
+      },
+      "eyes": { "swayFollow": { "x": 20, "y": -4, "lag": 0.4 } }
+    },
+    "thinking": {
+      "about": "Working: head floats, the other four orbit on a tilted 2.5D ring.",
+      "float": {
+        "head": { "x": 0, "y": 556, "rot": 0, "bob": { "y": 10, "rot": 2.2, "period": 2.4, "rotPeriod": 3.1 } }
+      },
+      "ring": { "around": "head", "cy": -110, "rx": 720, "ry": 265, "period": 3.2, "depthScale": 0.16,
+                "shade": 0.22, "rock": 14, "slots": ["pebble", "chest", "foot", "belly"] },
+      "eyes": { "look": [0, -15], "followRing": 20 }
+    },
+    "news": {
+      "about": "Unread replies: chest and pebble make a floating '!' beside a short cairn.",
+      "stack": {
+        "order": [["head", 0], ["belly", -6], ["foot", 4]],
+        "sway": { "period": 6, "tip": 1.4, "tipPhase": 0.25, "bend": 4, "bendExp": 1.35, "lag": 1.1,
+                  "catch": 0.6, "catchLag": 2.2, "catchPhase": 0.7, "roll": true },
+        "breath": { "amp": 3, "period": 3, "lag": 1.4 }
+      },
+      "float": {
+        "chest":  { "x": 640, "y": 900, "rot": 82, "bob": { "y": 16, "rot": 3, "period": 1.6 }, "pulse": { "scale": 0.07, "period": 1.6 } },
+        "pebble": { "x": 596, "y": 587, "rot": 0, "bob": { "y": 16, "rot": 0, "period": 1.6, "phase": -0.5 }, "pulse": { "scale": 0.07, "period": 1.6, "phase": -0.5 } }
+      },
+      "eyes": { "look": [12, -8] }
+    }
+  },
+
+  "moods": { "idle": "cairn", "waiting": "balance", "thinking": "thinking", "news": "news" },
+
+  "transitions": {
+    "default": {
+      "about": "Stones leave top-first and land bottom-first, each on an arc scaled by how far it travels.",
+      "mode": "sequence", "antic": 0, "squash": 0,
+      "departGap": 0.12, "arriveStart": 0.35, "arriveGap": 0.22, "fly": 0.85,
+      "arc": 110, "fling": 70, "arcDistance": 400,
+      "land": { "squash": 0.06, "duration": 0.3 }
+    },
+    "cairn>thinking": {
+      "about": "Squash, jump, and the stack is thrown into orbit; higher stones carry more momentum.",
+      "mode": "launch", "antic": 0.5, "squash": 0.17,
+      "lead": { "stone": "head", "start": 0.5, "duration": 0.42, "ease": "outBack" },
+      "launch": { "apex": 120, "apexPerRank": 70, "tApex": 0.30, "tApexPerRank": 0.04, "spread": 230 },
+      "hold": 0.24, "arriveGap": 0.03, "fallIn": 0.8, "arc": 0, "fling": 0,
+      "land": { "squash": 0.06, "duration": 0.3 }
+    },
+    "thinking>cairn": {
+      "about": "Head settles first, then the stones fly home bottom-first.",
+      "mode": "sequence", "antic": 0, "squash": 0,
+      "departGap": 0, "arriveStart": 0.1, "arriveGap": 0.3, "fly": 0.95,
+      "arc": 90, "fling": 0, "arcDistance": 300, "baseEase": "outBack",
+      "land": { "squash": 0.07, "duration": 0.3 }
+    },
+    "cairn>balance": {
+      "about": "Hop-flip: squash, the stones scatter wide, the head pops up the middle, the stones drop in under him bottom-first.",
+      "mode": "launch", "antic": 0.4, "squash": 0.14, "sides": "alternate",
+      "lead": { "stone": "head", "start": 0.48, "duration": 0.55, "ease": "outBack" },
+      "launch": { "apex": 110, "apexPerRank": 40, "tApex": 0.28, "tApexPerRank": 0.03, "spread": 500 },
+      "hold": 0.45, "arriveGap": 0.14, "fallIn": 0.6, "arc": 60, "fling": 0, "arcDistance": 500,
+      "land": { "squash": 0.07, "duration": 0.3 }
+    },
+    "balance>cairn": {
+      "about": "Flip back: the pebble squats, the stones fling outward, the head drops through the gap, then the stones arc back on top.",
+      "mode": "launch", "antic": 0.3, "squash": 0.12, "sides": "alternate",
+      "lead": { "stone": "head", "start": 0.36, "duration": 0.42, "ease": "smoother" },
+      "launch": { "apex": 60, "apexPerRank": 25, "tApex": 0.26, "tApexPerRank": 0.02, "spread": 520 },
+      "hold": 0.3, "arriveGap": 0.15, "fallIn": 0.6, "arc": 140, "fling": 0, "arcDistance": 500,
+      "land": { "squash": 0.07, "duration": 0.3 }
+    }
+  }
+}

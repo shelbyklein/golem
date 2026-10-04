@@ -1,0 +1,3 @@
+PASS independent Chatterbox/Golem pairing, product-scoped lists/tokens/chats and journal gateway
+PASS daemon-hosted /v1 create/send/read/list and existing MCP list_chats with no UI
+Companion artifacts: /tmp/golem-companion.7blq_emd

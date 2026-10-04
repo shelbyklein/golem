@@ -1,0 +1,2 @@
+PASS signed-UI capability boundary, protocol version, receipt retry, event replay/resync, plugin revocation, restart persistence
+RPC artifacts: /tmp/golem-rpc.fsa8me1q

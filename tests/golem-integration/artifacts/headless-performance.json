@@ -1,0 +1,17 @@
+[
+  {
+    "run": 1,
+    "seconds": 60.00509087496903,
+    "combined_cpu_percent": 0.0
+  },
+  {
+    "run": 2,
+    "seconds": 60.00506262492854,
+    "combined_cpu_percent": 0.0
+  },
+  {
+    "run": 3,
+    "seconds": 60.000946625019424,
+    "combined_cpu_percent": 0.0
+  }
+]

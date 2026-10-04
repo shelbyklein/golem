@@ -1,0 +1,44 @@
+[
+  {
+    "cpu_percent" : 7.6663410113645556,
+    "render_draws" : 721,
+    "run" : 1,
+    "seconds" : 60.034676166600548,
+    "state" : "visible"
+  },
+  {
+    "cpu_percent" : 6.5414411652346214,
+    "render_draws" : 722,
+    "run" : 2,
+    "seconds" : 60.072282250039279,
+    "state" : "visible"
+  },
+  {
+    "cpu_percent" : 6.5875121022563654,
+    "render_draws" : 722,
+    "run" : 3,
+    "seconds" : 60.097088833339512,
+    "state" : "visible"
+  },
+  {
+    "cpu_percent" : 0.062541661587705424,
+    "render_draws" : 0,
+    "run" : 1,
+    "seconds" : 60.36935866670683,
+    "state" : "hidden"
+  },
+  {
+    "cpu_percent" : 0.087025926619050245,
+    "render_draws" : 0,
+    "run" : 2,
+    "seconds" : 60.838191625080071,
+    "state" : "hidden"
+  },
+  {
+    "cpu_percent" : 0.080586722348612028,
+    "render_draws" : 0,
+    "run" : 3,
+    "seconds" : 60.367264708387665,
+    "state" : "hidden"
+  }
+]

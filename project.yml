@@ -1,0 +1,219 @@
+name: Golem
+options:
+  bundleIdPrefix: com.shelbyklein
+  deploymentTarget:
+    macOS: '14.0'
+packages:
+  SwiftTerm:
+    url: https://github.com/migueldeicaza/SwiftTerm
+    exactVersion: 1.11.0
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: '1'
+targets:
+  Golem:
+    type: application
+    platform: macOS
+    sources:
+    - path: Core/Chatterbox
+    - path: Core/ChatterboxRuntime
+    - path: Core/Shared
+    - path: GolemApp
+    - path: Core/prompts
+      type: folder
+      buildPhase: resources
+    - path: Core/DotComputer
+      type: folder
+      buildPhase: resources
+    dependencies:
+    - sdk: AVKit.framework
+    - package: SwiftTerm
+    - target: GolemService
+      embed: true
+      codeSign: true
+      copy:
+        destination: executables
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shelbyklein.Golem
+        PRODUCT_NAME: Golem
+        GENERATE_INFOPLIST_FILE: true
+        ASSETCATALOG_COMPILER_APPICON_NAME: GolemAppIcon
+        INFOPLIST_KEY_CFBundleDisplayName: Golem
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        CODE_SIGN_ENTITLEMENTS: GolemApp/Golem.entitlements
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: Apple Development
+        DEVELOPMENT_TEAM: 9F3MKVW9C5
+        ENABLE_HARDENED_RUNTIME: true
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) GOLEM_APP
+  GolemService:
+    type: tool
+    platform: macOS
+    sources:
+    - path: Core/Chatterbox/Engine/Models.swift
+    - path: Core/Chatterbox/Engine/ChatSession.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Claude.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Codex.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Host.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Status.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Summary.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Shell.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Remote.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Tasks.swift
+    - path: Core/Chatterbox/Engine/ChatSession+Issues.swift
+    - path: Core/Chatterbox/Engine/ClaudeCode.swift
+    - path: Core/Chatterbox/Engine/CodexAppServer.swift
+    - path: Core/Chatterbox/Engine/HostClient.swift
+    - path: Core/Chatterbox/Engine/Usage.swift
+    - path: Core/Chatterbox/Engine/ClaudeModels.swift
+    - path: Core/Chatterbox/Engine/SlashCommands.swift
+    - path: Core/Chatterbox/Engine/Tools.swift
+    - path: Core/Chatterbox/Engine/ModelPresets.swift
+    - path: Core/Chatterbox/Engine/GitHub.swift
+    - path: Core/Chatterbox/Engine/GitHubIssues.swift
+    - path: Core/Chatterbox/Engine/IssuePrompts.swift
+    - path: Core/Chatterbox/Engine/Prompts.swift
+    - path: Core/Chatterbox/Engine/PermissionModes.swift
+    - path: Core/Chatterbox/Engine/Secrets.swift
+    - path: Core/Chatterbox/Engine/EasyCLIProxy.swift
+    - path: Core/Chatterbox/Engine/CodexRoute.swift
+    - path: Core/Chatterbox/Engine/BackgroundTasks.swift
+    - path: Core/Chatterbox/Engine/ChatComputer.swift
+    - path: Core/Chatterbox/Engine/DotComputer.swift
+    - path: Core/Chatterbox/Engine/PreviewRelays.swift
+    - path: Core/Chatterbox/Support/JSON.swift
+    - path: Core/Chatterbox/Support/HostProtocol.swift
+    - path: Core/Chatterbox/Support/Attachments.swift
+    - path: Core/Shared/Backend.swift
+    - path: Core/Shared/MediaKind.swift
+    - path: Core/Shared/FilePaths.swift
+    - path: Core/ChatterboxRuntime/AssistantInstructions.swift
+    - path: Core/ChatterboxRuntime/RuntimeWire.swift
+    - path: Core/ChatterboxRuntime/RuntimePaths.swift
+    - path: Core/ChatterboxRuntime/RuntimeSocket.swift
+    - path: Core/ChatterboxRuntime/ChatSession+Media.swift
+    - path: Core/ChatterboxRuntime/AssistantConfiguration.swift
+    - path: Core/ChatterboxRuntime/ConversationRuntime.swift
+    - path: Core/ChatterboxRuntime/RuntimePreferences.swift
+    - path: Core/ChatterboxRuntime/RuntimePeer.swift
+    - path: Core/ChatterboxRuntime/Studio.swift
+    - path: Core/ChatterboxRuntime/RuntimeClient.swift
+    - path: GolemService
+    - path: Core/Shared/AppPreferences.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shelbyklein.Golem.Service
+        PRODUCT_NAME: golemd
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: Apple Development
+        DEVELOPMENT_TEAM: 9F3MKVW9C5
+        ENABLE_HARDENED_RUNTIME: true
+        SKIP_INSTALL: true
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) CHATTERBOX_HEADLESS
+  GolemMobile:
+    type: application
+    platform: iOS
+    deploymentTarget: '17.0'
+    sources:
+    - path: Core/ChatterboxMobile
+    - path: Core/Shared
+    - path: Core/Chatterbox/Views/MarkdownText.swift
+    - path: Core/Chatterbox/Views/ReaderStyle.swift
+    - path: Core/Chatterbox/Views/PathLinks.swift
+    - path: GolemMobile
+    info:
+      path: GolemMobile/Info.plist
+      properties:
+        CFBundleDisplayName: Golem
+        ChatterboxAPNsEnvironment: $(APNS_ENVIRONMENT)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+        - UIInterfaceOrientationPortrait
+        - UIInterfaceOrientationLandscapeLeft
+        - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+        - UIInterfaceOrientationPortrait
+        - UIInterfaceOrientationPortraitUpsideDown
+        - UIInterfaceOrientationLandscapeLeft
+        - UIInterfaceOrientationLandscapeRight
+        NSLocalNetworkUsageDescription: Chatterbox finds and talks to Chatterbox on
+          your Mac over your network.
+        NSBonjourServices:
+        - _chatterbox._tcp
+        NSPhotoLibraryAddUsageDescription: Chatterbox saves images from your chats
+          to Photos when you ask it to.
+        NSMicrophoneUsageDescription: Chatterbox listens while you dictate a message.
+        NSSpeechRecognitionUsageDescription: Chatterbox turns what you say into the
+          text of your message.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+          NSExceptionDomains:
+            127.0.0.0/8:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            10.0.0.0/8:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            172.16.0.0/12:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            192.168.0.0/16:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            169.254.0.0/16:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            100.64.0.0/10:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            ::1:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            fe80::/10:
+              NSExceptionAllowsInsecureHTTPLoads: true
+            fc00::/7:
+              NSExceptionAllowsInsecureHTTPLoads: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shelbyklein.Golem.mobile
+        PRODUCT_NAME: Golem
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: '1'
+        TARGETED_DEVICE_FAMILY: 1,2
+        DEVELOPMENT_TEAM: 9F3MKVW9C5
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_VERSION: '5.0'
+        CODE_SIGN_ENTITLEMENTS: GolemMobile/GolemMobile.entitlements
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) GOLEM_APP
+      configs:
+        Debug:
+          APNS_ENVIRONMENT: development
+        Release:
+          APNS_ENVIRONMENT: production
+  GolemMobileProductTests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: '17.0'
+    sources:
+    - path: tests/golem-integration/MobileProductTests.swift
+    dependencies:
+    - target: GolemMobile
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shelbyklein.GolemMobileProductTests
+        GENERATE_INFOPLIST_FILE: true
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) GOLEM_APP
+schemes:
+  Golem:
+    build:
+      targets:
+        Golem: all
+  GolemMobile:
+    build:
+      targets:
+        GolemMobile: all
+  GolemMobileAcceptance:
+    build:
+      targets:
+        GolemMobile: all
+        GolemMobileProductTests: all
+    test:
+      targets:
+      - GolemMobileProductTests

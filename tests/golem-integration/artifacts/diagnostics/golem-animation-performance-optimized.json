@@ -1,0 +1,16 @@
+[
+  {
+    "cpu_percent" : 7.0431096800353368,
+    "render_draws" : 1810,
+    "run" : 1,
+    "seconds" : 60.346298624994233,
+    "state" : "visible"
+  },
+  {
+    "cpu_percent" : 7.6594831453953631,
+    "render_draws" : 1795,
+    "run" : 2,
+    "seconds" : 60.101352958357893,
+    "state" : "visible"
+  }
+]

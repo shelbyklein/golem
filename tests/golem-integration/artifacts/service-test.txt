@@ -1,0 +1,2 @@
+PASS headless Golem check-in with both UIs absent, journal persistence, restart dedupe, service stop
+Service artifacts: /tmp/golem-service.bbh8r8rs
