@@ -22,18 +22,22 @@ import Foundation
 
         To find it, search each account with exactly this query: after:\(Int(since.timeIntervalSince1970)) -in:sent -in:drafts (Gmail reads that number as the exact moment of the last sweep). Every result is new; don't filter by time yourself, since Gmail mixes time zones in its timestamps. Page through all results.
 
-        First read the user's notes: \(RuntimePaths.assistantMemoryFolder.path)/MEMORY.md and the files it points to (especially the accounts and \(name)'s jobs). Follow them on what counts as important. Unless they say otherwise, flag mail that needs the user to do or decide something, or that they'd want to know about soon: school, appointments, bills or deadlines, clients and work requests (USA Archery and its forwards included), and personal messages from real people. Stay quiet about newsletters, promotions, receipts with nothing to do, automated notifications, and anything the user has already replied to.
+        First read the user's notes: \(RuntimePaths.assistantMemoryFolder.path)/MEMORY.md and the files it points to (especially the accounts and \(name)'s jobs). Follow them on what counts as important. Flag verified, contextual matters requiring a decision or meaningful new information: school, appointments, life-admin deadlines, clients and work requests (USA Archery and its forwards included), and personal messages from real people. Read the relevant message/thread before deciding; a subject or snippet saying an announcement might contain updates is not enough.
+
+        Routine mail stays quiet: newsletters, promotions, receipts with nothing to do, ordinary bill-available notices with automatic payment already scheduled, routine sign-ins on a known device, and anything already replied to. Automated project alerts may matter when they show a concrete unresolved fault, deadline, or material worsening; do not flag routine status or repeat alerts. The later briefing will correlate important project mail with its existing project chat. Do not invent urgency or propose work just to make an ordinary message actionable.
+
+        Access is part of the result: search every configured Gmail account in the account notes. Return status "ok" only when Gmail tools actually completed those searches and you inspected enough context to classify the results. List the account addresses you successfully checked in accountsChecked. If a tool is absent, an account is inaccessible, a page fails, or the checks are incomplete, return status "unavailable", a short error without credentials, and emails []. An inaccessible inbox is never a successful empty inbox.
 
         Answer with the JSON the schema asks for: "emails", most important first, at most 8. Leave it empty when nothing needs the user; that's the usual case. For each email: account (the address it arrived at), from (the sender's name), subject, why (one short sentence on why it matters to the user), action (one short suggested next step), link (a Gmail web link to the message if your tools give one, otherwise ""), and id (the message's id).
         """
     }
 
     nonisolated static let schema = """
-    {"type":"object","additionalProperties":false,"required":["emails"],"properties":{"emails":{"type":"array","maxItems":8,"items":{"type":"object","additionalProperties":false,"required":["account","from","subject","why","action","link","id"],"properties":{"account":{"type":"string"},"from":{"type":"string"},"subject":{"type":"string"},"why":{"type":"string"},"action":{"type":"string"},"link":{"type":"string"},"id":{"type":"string"}}}}}}
+    {"type":"object","additionalProperties":false,"required":["status","accountsChecked","error","emails"],"properties":{"status":{"type":"string","enum":["ok","unavailable"]},"accountsChecked":{"type":"array","items":{"type":"string"}},"error":{"type":"string"},"emails":{"type":"array","maxItems":8,"items":{"type":"object","additionalProperties":false,"required":["account","from","subject","why","action","link","id"],"properties":{"account":{"type":"string"},"from":{"type":"string"},"subject":{"type":"string"},"why":{"type":"string"},"action":{"type":"string"},"link":{"type":"string"},"id":{"type":"string"}}}}}}
     """
 
     enum Outcome {
-        case success([Email])
+        case success([Email], accounts: [String])
         case failure(String)
     }
 
@@ -66,21 +70,25 @@ import Foundation
             defer{runner.finished(process)}
             let watchdog = DispatchWorkItem { if process.isRunning { process.terminate() } }
             DispatchQueue.global().asyncAfter(deadline: .now() + 600, execute: watchdog)
-            let errorText = String(decoding: errors.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+            // Drain the pipe, but never copy provider output (which may contain mail or
+            // credentials) into service logs or user-visible errors.
+            _ = errors.fileHandleForReading.readDataToEndOfFile()
             process.waitUntilExit()
             watchdog.cancel()
 
-            guard let data = try? Data(contentsOf: answerFile), !data.isEmpty else {
-                NSLog("Chatterbox email watch: codex exited %d: %@", process.terminationStatus, String(errorText.suffix(1500)))
-                let last = errorText.split(separator: "\n").last(where: { $0.localizedCaseInsensitiveContains("error") }) ?? ""
+            guard process.terminationStatus == 0, let data = try? Data(contentsOf: answerFile), !data.isEmpty else {
                 return .failure(process.terminationReason == .uncaughtSignal ? "The sweep took too long and was stopped."
-                                : "The sweep didn't finish. " + String(last.prefix(200)))
+                                : "The email sweep did not complete successfully (Codex exit \(process.terminationStatus)).")
             }
-            struct Answer: Decodable { var emails: [Email] }
+            struct Answer: Decodable { var status: String; var accountsChecked: [String]; var error: String; var emails: [Email] }
             guard let answer = try? JSONDecoder().decode(Answer.self, from: data) else {
                 return .failure("The sweep's answer couldn't be read.")
             }
-            return .success(answer.emails)
+            guard answer.status == "ok", answer.error.isEmpty,
+                  !answer.accountsChecked.isEmpty, answer.accountsChecked.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
+                return .failure("Gmail checks were unavailable or incomplete; the successful email cursor was not advanced.")
+            }
+            return .success(answer.emails, accounts: answer.accountsChecked)
         }.value
     }
 

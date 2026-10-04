@@ -4,7 +4,7 @@ import json,sys,uuid
 if 'exec' in sys.argv:
  from pathlib import Path
  output=sys.argv[sys.argv.index('-o')+1]
- Path(output).write_text(json.dumps({'emails':[{'account':'fixture@example.invalid','from':'Fixture Sender','subject':'Fixture appointment','why':'A fixture needs a decision.','action':'Review the appointment.','link':'','id':'fixture-mail-1'}]}))
+ Path(output).write_text(json.dumps({'status':'ok','accountsChecked':['fixture@example.invalid'],'error':'','emails':[{'account':'fixture@example.invalid','from':'Fixture Sender','subject':'Fixture appointment','why':'A fixture needs a decision.','action':'Review the appointment.','link':'','id':'fixture-mail-1'}]}))
  sys.exit(0)
 codex='app-server' in sys.argv
 thread='fixture-thread';turn='fixture-turn';pending=None

@@ -55,10 +55,13 @@ import Darwin
                 let keys=["dotCheckIns","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch"]
                 var preferences:[String:JSON]=[:]
                 for key in keys{preferences[key] = .bool(AppPreferences.defaults.object(forKey:key) as? Bool ?? true)}
-                result=["paused":.bool(jobs.state.paused),"problem":jobs.state.problem.map(JSON.string) ?? .null,
+                result=["paused":.bool(jobs.state.paused),"problem":(jobs.state.emailProblem ?? jobs.state.problem).map(JSON.string) ?? .null,
                         "jobs":.number(Double(jobs.state.jobs.count)),"preferences":.object(preferences),
                         "checkInTimes":try .value(AppPreferences.defaults.array(forKey:"dotCheckInTimes") as? [Int] ?? [480,900]),
                         "emailThrough":jobs.state.emailThrough.map{.string(ISO8601DateFormatter().string(from:$0))} ?? .null,
+                        "emailAttempt":jobs.state.emailAttempt.map{.string(ISO8601DateFormatter().string(from:$0))} ?? .null,
+                        "emailProblem":jobs.state.emailProblem.map(JSON.string) ?? .null,
+                        "emailAccounts":try .value(jobs.state.emailAccounts ?? []),
                         "sweeping":.bool(jobs.isSweeping)]
             case "journal":result=try .value(jobs.entries)
             case "pause", "checkIn", "sweep", "settings", "stop":

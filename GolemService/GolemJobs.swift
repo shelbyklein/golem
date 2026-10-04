@@ -6,7 +6,7 @@ import CryptoKit
 /// Only this process writes assistant policy state and journal.json.
 @MainActor final class GolemJobs {
     struct Job:Codable {var id:String;var label:String;var text:String;var submitted=false}
-    struct State:Codable {var schema=1;var jobs:[Job]=[];var seen:Set<String>=[];var problem:String?;var paused=false;var emailAttempt:Date?;var emailThrough:Date?;var controls:[String:CommandReceipt]?=[:]}
+    struct State:Codable {var schema=1;var jobs:[Job]=[];var seen:Set<String>=[];var problem:String?;var paused=false;var emailAttempt:Date?;var emailThrough:Date?;var emailProblem:String?;var emailAccounts:[String]?;var controls:[String:CommandReceipt]?=[:]}
     struct Entry:Codable {var id:UUID;var date:Date;var kind:String;var title:String;var detail:String?;var chat:UUID?;var chatName:String?}
     private(set) var state:State
     private(set) var entries:[Entry]
@@ -101,7 +101,12 @@ import CryptoKit
     }
     private func sweep(now:Date){
         let interval:TimeInterval=(9..<17).contains(Calendar.current.component(.hour,from:now)) ? 900:1800
-        guard !sweeping,now.timeIntervalSince(state.emailAttempt ?? .distantPast)>=interval,let codex=CodexAppServer.locateBinary() else{return}
+        guard !state.paused,!sweeping,now.timeIntervalSince(state.emailAttempt ?? .distantPast)>=interval else{return}
+        guard let codex=CodexAppServer.locateBinary() else {
+            state.emailAttempt=now
+            state.emailProblem="Email watcher cannot start Codex. Check Golem’s app-specific codexPath for a missing executable."
+            state.problem=state.emailProblem;save();return
+        }
         state.emailAttempt=now;save();sweeping=true
         let since=max(state.emailThrough ?? now.addingTimeInterval(-3600),now.addingTimeInterval(-57600))
         Task {
@@ -109,12 +114,14 @@ import CryptoKit
             let result=await EmailSweep.run(codex:codex,model:AppPreferences.defaults.string(forKey:"dotEmailModel") ?? "gpt-6-luna",prompt:EmailSweep.prompt(name:"Golem",since:since,now:now))
             guard !state.paused else{return}
             switch result {
-            case .failure(let error):state.problem=error;save()
-            case .success(let emails):
+            case .failure(let error):state.emailProblem=error;state.problem=error;save()
+            case .success(let emails,let accounts):
+                if state.problem==state.emailProblem{state.problem=nil}
+                state.emailProblem=nil;state.emailAccounts=accounts
                 for email in emails {
                     let identity="email:\(email.account):\(email.id.isEmpty ? email.subject : email.id)"
                     journal(id:"journal:\(identity)",title:"Email from \(email.from)",detail:"\(email.subject): \(email.why) Suggested: \(email.action)",kind:"activity",chat:nil)
-                    enqueue(id:identity,label:"Email from \(email.from)",text:"Email for you: \(email.subject) (\(email.account)). \(email.why) Suggested next step: \(email.action). \(email.link). Give the user a brief report. This sweep only read mail; do not send, draft, archive, label, mark read or change any email.")
+                    enqueue(id:identity,label:"Email from \(email.from)",text:"Email candidate: \(email.subject) (\(email.account)). \(email.why) Suggested next step: \(email.action). \(email.link). Before reporting, check your conversation context and, for project alerts, list/read the matching project chat. Correlate the alert with existing work and link to that chat when relevant. If it is routine, already addressed, unchanged from an earlier alert, or needs no new user action, reply exactly NO_REPORT. Important school, appointments, life admin and USA Archery deserve contextual attention; ordinary autopay notices and speculative announcements stay quiet. Otherwise give a brief contextual report. This sweep only read mail; do not send, draft, archive, label, mark read or change any email.")
                 }
                 state.emailThrough=now;save();drain()
             }
