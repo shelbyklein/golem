@@ -12,7 +12,6 @@ import AppKit
             CommandGroup(replacing:.newItem){Button("Show Golem Mini"){model.showingDot.toggle()}.keyboardShortcut("j")}
         }
         Settings {GolemServiceSettings().environment(model).defaultAppStorage(AppPreferences.defaults)}
-        Window("Agent Computer",id:DotComputerPanel.windowID){DotComputerPanel().environment(model)}
     }
 }
 

@@ -24,9 +24,6 @@ targets:
     - path: Core/prompts
       type: folder
       buildPhase: resources
-    - path: Core/DotComputer
-      type: folder
-      buildPhase: resources
     dependencies:
     - sdk: AVKit.framework
     - package: SwiftTerm
@@ -82,8 +79,6 @@ targets:
     - path: Core/Chatterbox/Engine/CodexRoute.swift
     - path: Core/Chatterbox/Engine/BackgroundTasks.swift
     - path: Core/Chatterbox/Engine/ChatComputer.swift
-    - path: Core/Chatterbox/Engine/DotComputer.swift
-    - path: Core/Chatterbox/Engine/PreviewRelays.swift
     - path: Core/Chatterbox/Support/JSON.swift
     - path: Core/Chatterbox/Support/HostProtocol.swift
     - path: Core/Chatterbox/Support/Attachments.swift
