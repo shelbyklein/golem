@@ -14,6 +14,7 @@
 		0AF4926D03C84BE96EF7CCFE /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888327FEAF92133119A3815F /* main.swift */; };
 		0AF9A68E27ABAFD6A56861F6 /* ChatSession+Shell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3334B475B27B9C68341113CD /* ChatSession+Shell.swift */; };
 		0B56B4257B7233B04F2B92A7 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623AC7081BABE58848DF8C02 /* AppPreferences.swift */; };
+		0BB0A4C8A4479FF6457CDF13 /* AutomationsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADBB4BB024C406CE0DEC2D93 /* AutomationsSheet.swift */; };
 		0BE0F09B09CCCC99A938DF55 /* MobilePushSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6338870F29C6B66835CD6DF2 /* MobilePushSettings.swift */; };
 		0CC6285E6923B343E4EC4B24 /* IssuesPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4421C17DA8D7BA52FFF390 /* IssuesPanel.swift */; };
 		0D215E593D0C7071C935C32A /* BackgroundTasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BCF0E81CAA66205A3BCBF2 /* BackgroundTasks.swift */; };
@@ -56,6 +57,7 @@
 		3AAB204B0C4EC3C9546E1159 /* WebPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC20C337C6F188FB830F9BF /* WebPane.swift */; };
 		3C0335AE623D08A0F67E5659 /* HostProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 768C46B22A75458F2980A813 /* HostProtocol.swift */; };
 		3CDCC5FDC956AECB3807DAB7 /* ClaudeCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BABFD40002B33B299AF53FD /* ClaudeCode.swift */; };
+		437E85DA57866519BC9DCF17 /* ProxyQuota.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EEB388F77EB5C0C2AA41D90 /* ProxyQuota.swift */; };
 		44D4D0EA50D64606292D92A8 /* BackgroundTasks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13BCF0E81CAA66205A3BCBF2 /* BackgroundTasks.swift */; };
 		4515F797D7632F813CF5C1F2 /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDA6F67E48DDA2B5202743C /* Tools.swift */; };
 		47AD888081EC90E44A7132FD /* Pins.swift in Sources */ = {isa = PBXBuildFile; fileRef = 194BDBC11B23CAEB9780AFC0 /* Pins.swift */; };
@@ -88,6 +90,7 @@
 		615C165EAA1BD198461527F4 /* GolemRigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF42F010A3F464504C831F /* GolemRigView.swift */; };
 		61B188FBAE58FF7E57D58EF2 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AFD14EA844AA5DFEEC2564 /* JSON.swift */; };
 		624E9E98D6F83D805D92282F /* CompanionRetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756E68FA28C779625EC32A2E /* CompanionRetry.swift */; };
+		63FB04A1D7F8D4C30F542681 /* ProxyQuotaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2157FEB9080317B9811792 /* ProxyQuotaView.swift */; };
 		63FBD081CD26F1961666B310 /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B18B8FEB671C252784E772C /* ItemView.swift */; };
 		6414DDC6D1F6A8A46B23D4B8 /* RuntimeSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80D6FA1E0506587754DCB38 /* RuntimeSocket.swift */; };
 		64D8E369134B1D7F23279C06 /* EasyCLIProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D6197EBD59D4D3D2A3DE51 /* EasyCLIProxy.swift */; };
@@ -224,6 +227,7 @@
 		FCE02D85C5E84A361C755676 /* Dictation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8295E97C90F32F8FF05EFC2 /* Dictation.swift */; };
 		FDABCEA40790767EC825A34C /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9EB0218B97C4D345304F3A /* Models.swift */; };
 		FDBB7A66F2A76B7804D0F87F /* FilePaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 664704B0770FAFEAB8A1856B /* FilePaths.swift */; };
+		FDC573D398282A2834644EBF /* ProjectAutomations.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9195739991A3A26DC3F59A5 /* ProjectAutomations.swift */; };
 		FFD5676AE5B6914478C83A6D /* TerminalPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B77828E19C40BAA9D17E6A2 /* TerminalPanel.swift */; };
 /* End PBXBuildFile section */
 
@@ -277,6 +281,8 @@
 		25D6197EBD59D4D3D2A3DE51 /* EasyCLIProxy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EasyCLIProxy.swift; sourceTree = "<group>"; };
 		270568B40AFD3896767E1C41 /* MobileHTMLPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileHTMLPreview.swift; sourceTree = "<group>"; };
 		270C285BDDA9168D34B49B98 /* ChatSession+Tasks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Tasks.swift"; sourceTree = "<group>"; };
+		2C2157FEB9080317B9811792 /* ProxyQuotaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyQuotaView.swift; sourceTree = "<group>"; };
+		2EEB388F77EB5C0C2AA41D90 /* ProxyQuota.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyQuota.swift; sourceTree = "<group>"; };
 		3334B475B27B9C68341113CD /* ChatSession+Shell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Shell.swift"; sourceTree = "<group>"; };
 		338C9EFA057975DC1614D90D /* CodexAppServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexAppServer.swift; sourceTree = "<group>"; };
 		37E21DB402DBFF4CA6749A2C /* ImageReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageReviewView.swift; sourceTree = "<group>"; };
@@ -369,6 +375,7 @@
 		A51DFE09E690C3416D4AFA29 /* MobilePushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePushNotifications.swift; sourceTree = "<group>"; };
 		A5A6CE0FDAF2B47F3B15FDF6 /* RuntimePreferenceProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimePreferenceProjection.swift; sourceTree = "<group>"; };
 		AC9E24A51B9954739AA133F8 /* UsageMeter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageMeter.swift; sourceTree = "<group>"; };
+		ADBB4BB024C406CE0DEC2D93 /* AutomationsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomationsSheet.swift; sourceTree = "<group>"; };
 		AF288FAF079650A9E8BD3F0E /* GolemTalk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemTalk.swift; sourceTree = "<group>"; };
 		B2E2C7A5E65AFC3085D168F2 /* GolemMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemMobileApp.swift; sourceTree = "<group>"; };
 		B4A54E8B1198E625DB226372 /* TranscriptViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptViews.swift; sourceTree = "<group>"; };
@@ -416,6 +423,7 @@
 		F4E1D4F004807A7A06EC5F02 /* GolemCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemCapture.swift; sourceTree = "<group>"; };
 		F5D82E0F718074C1E4C80144 /* HTTPFileTransfer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPFileTransfer.swift; sourceTree = "<group>"; };
 		F7E5DF0205FB514B074DDB5D /* ChatSession+Remote.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Remote.swift"; sourceTree = "<group>"; };
+		F9195739991A3A26DC3F59A5 /* ProjectAutomations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectAutomations.swift; sourceTree = "<group>"; };
 		FA31EAB4B7DC862FCDE2B992 /* Prompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Prompts.swift; sourceTree = "<group>"; };
 		FA4421C17DA8D7BA52FFF390 /* IssuesPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuesPanel.swift; sourceTree = "<group>"; };
 		FB04413F378D288EE53E0B3B /* GolemMiniWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemMiniWindow.swift; sourceTree = "<group>"; };
@@ -453,6 +461,7 @@
 			isa = PBXGroup;
 			children = (
 				EF513E44F0C0AAB1A69F3995 /* ActivitySpinner.swift */,
+				ADBB4BB024C406CE0DEC2D93 /* AutomationsSheet.swift */,
 				A3F4C47B04C25D26C9CC0BA9 /* BackgroundWorkBar.swift */,
 				72038295767419AF7E180F8E /* ChatColumns.swift */,
 				6E3B1FD028EFF103A9C2578A /* ChatColumnWidths.swift */,
@@ -491,6 +500,7 @@
 				DEF5F332711A43ED73438ECD /* PluginsSettingsView.swift */,
 				717579D7CBB7B88A53155D89 /* PreviewDestination.swift */,
 				D78627ECD492CC2887A68E27 /* ProjectIcons.swift */,
+				2C2157FEB9080317B9811792 /* ProxyQuotaView.swift */,
 				6E4E1C5789DAFF7E37AD59B7 /* QuickSwitcher.swift */,
 				5B010A77105A6457EA5CA8F5 /* ReaderStyle.swift */,
 				C944F26BD3A9441A51D33392 /* SettingsView.swift */,
@@ -548,8 +558,10 @@
 				9A3EB1DCCC61021819C5A7D2 /* NextSteps.swift */,
 				8ECD6B2F8A0584C7D95E7964 /* PermissionModes.swift */,
 				194BDBC11B23CAEB9780AFC0 /* Pins.swift */,
+				F9195739991A3A26DC3F59A5 /* ProjectAutomations.swift */,
 				459CA1C3008D1FB5FE843F85 /* ProjectSorting.swift */,
 				FA31EAB4B7DC862FCDE2B992 /* Prompts.swift */,
+				2EEB388F77EB5C0C2AA41D90 /* ProxyQuota.swift */,
 				A5A6CE0FDAF2B47F3B15FDF6 /* RuntimePreferenceProjection.swift */,
 				6381F60DE38955487DB74226 /* Secrets.swift */,
 				4DC222C4B53756F944133FFC /* SlashCommands.swift */,
@@ -888,6 +900,7 @@
 				8FC9967B6EDB9D79D8EF69F5 /* AssistantInstructions.swift in Sources */,
 				22E6533DEC6E0E224A5AA2E4 /* Attachments.swift in Sources */,
 				729323EA753BC4978431A378 /* Attention.swift in Sources */,
+				0BB0A4C8A4479FF6457CDF13 /* AutomationsSheet.swift in Sources */,
 				84A43BD8F380FDC67A15C125 /* Backend.swift in Sources */,
 				0D215E593D0C7071C935C32A /* BackgroundTasks.swift in Sources */,
 				AC30CF9A642417434AAA9CCA /* BackgroundWorkBar.swift in Sources */,
@@ -978,9 +991,12 @@
 				B62DE5736DC7A52C4B2AE009 /* PinsSection.swift in Sources */,
 				4FB231BE4C91607C85125489 /* PluginsSettingsView.swift in Sources */,
 				51AF319ED12486AC11702BA5 /* PreviewDestination.swift in Sources */,
+				FDC573D398282A2834644EBF /* ProjectAutomations.swift in Sources */,
 				D83C94D471EFA56AD0F2CF25 /* ProjectIcons.swift in Sources */,
 				E3B4264AAABDCB2BCE963D49 /* ProjectSorting.swift in Sources */,
 				8A36C9FEBAB21BC454B6AC34 /* Prompts.swift in Sources */,
+				437E85DA57866519BC9DCF17 /* ProxyQuota.swift in Sources */,
+				63FB04A1D7F8D4C30F542681 /* ProxyQuotaView.swift in Sources */,
 				158ABA56FFA3E3395B321112 /* QuickSwitcher.swift in Sources */,
 				0927FAF6D60E5428BAB38443 /* ReaderStyle.swift in Sources */,
 				A35A5A16DF57FE67779B7203 /* RuntimeClient.swift in Sources */,
