@@ -6,5 +6,5 @@ manifest=$(mktemp /tmp/golem-service-sources.XXXXXX)
 trap 'rm -f "$manifest"' EXIT
 ./scripts/runtime-sources.sh > "$manifest"
 printf '%s\n' ChatterboxRuntime/RuntimeClient.swift >> "$manifest"
-rg --follow --files GolemService -g '*.swift' >> "$manifest"
+find -L GolemService -name '*.swift' >> "$manifest"
 swiftc -D DEBUG -D CHATTERBOX_HEADLESS -whole-module-optimization -Onone -o build/runtime/golemd @"$manifest"

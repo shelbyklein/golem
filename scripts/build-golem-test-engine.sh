@@ -7,7 +7,7 @@ if [[ -n "${GOLEM_TEST_ENGINE_DIR:-}" ]]; then
 fi
 test_dir=$(mktemp -d /tmp/golem-test-engine.XXXXXX)
 trap 'rm -rf "$test_dir"' EXIT
-rg --follow --files Chatterbox ChatterboxRuntime Shared -g '*.swift' -g '!ChatterboxApp.swift' | sort > "$test_dir/files.txt"
+find -L Chatterbox ChatterboxRuntime Shared -name '*.swift' ! -name 'ChatterboxApp.swift' | sort > "$test_dir/files.txt"
 # Cache the unchanged engine, so iterating on native-event fixtures does not recompile the app.
 engine_key=$({ swiftc --version; cat "$test_dir/files.txt"; while IFS= read -r source; do cat "$source"; done < "$test_dir/files.txt"; } | shasum -a 256 | cut -c 1-16)
 engine_dir="/tmp/chatterbox-mini-engine.$engine_key"
