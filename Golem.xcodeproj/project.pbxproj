@@ -66,6 +66,7 @@
 		492048416670923E83DA3861 /* GitHubIssues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8B7B3DB6A9C69E939D05995 /* GitHubIssues.swift */; };
 		4945FEB3C31ADDA043F738C1 /* ChatSession+Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97157099C326532CB4FFEA01 /* ChatSession+Status.swift */; };
 		4C0A27D2A6E84B92365DC0E0 /* SketchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8609433DFC535CD0D1055CE6 /* SketchView.swift */; };
+		4D4EF4EF90F2303F9F83CDC2 /* GolemAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B42DB84549B26EC597A958 /* GolemAppearance.swift */; };
 		4DD2756BEFF5CDABE9D6C2AA /* ChatSession+Summary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3929089B960C0B9ED7CF3405 /* ChatSession+Summary.swift */; };
 		4DD8BE5E6B8367DFCEF3BD14 /* ClaudeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFEEF93DC7FB975D616ABC0 /* ClaudeModels.swift */; };
 		4FB231BE4C91607C85125489 /* PluginsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF5F332711A43ED73438ECD /* PluginsSettingsView.swift */; };
@@ -95,7 +96,9 @@
 		6414DDC6D1F6A8A46B23D4B8 /* RuntimeSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80D6FA1E0506587754DCB38 /* RuntimeSocket.swift */; };
 		64D8E369134B1D7F23279C06 /* EasyCLIProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D6197EBD59D4D3D2A3DE51 /* EasyCLIProxy.swift */; };
 		66D173D1B44D436C7683192B /* EmailSweep.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACBC7FD33F9C58A254DE34C /* EmailSweep.swift */; };
+		6831429E35D50195F8D9B55D /* ElevenLabsSpeechSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA1CFF3C6C7A95DBFED7990 /* ElevenLabsSpeechSettings.swift */; };
 		6AE14034062903AEE75F5F48 /* MobileConversationStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BC8AD4ECE5261A04B40CFE /* MobileConversationStyle.swift */; };
+		6BAE8128DC34C5165929A69B /* ElevenLabsSpeechSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA1CFF3C6C7A95DBFED7990 /* ElevenLabsSpeechSettings.swift */; };
 		6FDF7A94D1BBFFCBB0EC0994 /* ImageReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E21DB402DBFF4CA6749A2C /* ImageReviewView.swift */; };
 		70AA75D351C0B2BC5D83033B /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDDA6F67E48DDA2B5202743C /* Tools.swift */; };
 		7102E91497F4646476332522 /* ConversationRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DD51BAD542ABC95273D60B /* ConversationRuntime.swift */; };
@@ -264,6 +267,7 @@
 
 /* Begin PBXFileReference section */
 		02A24E03546A297BEF8F60D5 /* IssuePrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuePrompts.swift; sourceTree = "<group>"; };
+		03B42DB84549B26EC597A958 /* GolemAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemAppearance.swift; sourceTree = "<group>"; };
 		055AB9833679CBB07881DA04 /* Golem.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Golem.entitlements; sourceTree = "<group>"; };
 		076ED868D6D54B3F6B9B53EB /* GolemMobileProductTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GolemMobileProductTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		09828F46B79D0E9E780743B4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -310,6 +314,7 @@
 		56AE3286E702C4341F9B14A7 /* MobilePDFViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePDFViewer.swift; sourceTree = "<group>"; };
 		5B010A77105A6457EA5CA8F5 /* ReaderStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderStyle.swift; sourceTree = "<group>"; };
 		5C297FBF510A01BD244C3F78 /* ChatControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatControls.swift; sourceTree = "<group>"; };
+		5CA1CFF3C6C7A95DBFED7990 /* ElevenLabsSpeechSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElevenLabsSpeechSettings.swift; sourceTree = "<group>"; };
 		623AC7081BABE58848DF8C02 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferences.swift; sourceTree = "<group>"; };
 		62BC8AD4ECE5261A04B40CFE /* MobileConversationStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileConversationStyle.swift; sourceTree = "<group>"; };
 		6338870F29C6B66835CD6DF2 /* MobilePushSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePushSettings.swift; sourceTree = "<group>"; };
@@ -600,6 +605,7 @@
 				74A004E900969F53289A823D /* CompanionTransportProbe.swift */,
 				7B9C85B3079B83A0760BE14F /* ConnectView.swift */,
 				B8295E97C90F32F8FF05EFC2 /* Dictation.swift */,
+				03B42DB84549B26EC597A958 /* GolemAppearance.swift */,
 				396F7F58E41B0863DC038D2C /* GolemVoice.swift */,
 				EF14BEF7AE792853F96129BC /* MobileComposerDraft.swift */,
 				62BC8AD4ECE5261A04B40CFE /* MobileConversationStyle.swift */,
@@ -688,6 +694,7 @@
 				8EA46D6E022AB23EB8DF341D /* Backend.swift */,
 				E04385394CF46FD805967EB6 /* CompanionAPI.swift */,
 				756E68FA28C779625EC32A2E /* CompanionRetry.swift */,
+				5CA1CFF3C6C7A95DBFED7990 /* ElevenLabsSpeechSettings.swift */,
 				664704B0770FAFEAB8A1856B /* FilePaths.swift */,
 				37E8C935C250AE977402D207 /* GolemRig.swift */,
 				BEEF42F010A3F464504C831F /* GolemRigView.swift */,
@@ -949,6 +956,7 @@
 				DB57C21E57252804163E5B67 /* DotConversation.swift in Sources */,
 				9FFD595D71C6F2EB87FA229A /* DotMemorySheet.swift in Sources */,
 				354C64324F9C04458E97161D /* EasyCLIProxy.swift in Sources */,
+				6831429E35D50195F8D9B55D /* ElevenLabsSpeechSettings.swift in Sources */,
 				88B6240F3E2891288C139A5E /* EmailWatch.swift in Sources */,
 				5431EA36AE0A38096BF48BEA /* FilePaths.swift in Sources */,
 				7700C0DB6D33BDCB97BBAEE0 /* GitHub.swift in Sources */,
@@ -1039,7 +1047,9 @@
 				20510D7D42814ED06E635576 /* CompanionTransportProbe.swift in Sources */,
 				750D188267A404701BA51EB8 /* ConnectView.swift in Sources */,
 				FCE02D85C5E84A361C755676 /* Dictation.swift in Sources */,
+				6BAE8128DC34C5165929A69B /* ElevenLabsSpeechSettings.swift in Sources */,
 				F6B8B3A26A2CCE92A31B73BD /* FilePaths.swift in Sources */,
+				4D4EF4EF90F2303F9F83CDC2 /* GolemAppearance.swift in Sources */,
 				D3FE6E6A3AD66B21712A00AA /* GolemMobileApp.swift in Sources */,
 				A19720C3DF9C35D15DEC4A0D /* GolemRig.swift in Sources */,
 				615C165EAA1BD198461527F4 /* GolemRigView.swift in Sources */,

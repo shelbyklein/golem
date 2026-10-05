@@ -6,8 +6,17 @@ import SwiftUI
     var body:some Scene {
         WindowGroup {
             Group {
+                #if DEBUG
+                if ProcessInfo.processInfo.environment["GOLEM_TEST_APPEARANCE"] == "1" {
+                    NavigationStack { Form { GolemAppearanceSettings() }.navigationTitle("Appearance") }
+                } else if ProcessInfo.processInfo.environment["GOLEM_TEST_VOICE_SETTINGS"] == "1" {
+                    NavigationStack { Form { GolemVoiceSettings() }.navigationTitle("Voice") }
+                } else if store.isPaired {GolemMobileRoot()}
+                else {ConnectView()}
+                #else
                 if store.isPaired {GolemMobileRoot()}
                 else {ConnectView()}
+                #endif
             }.environment(store).defaultAppStorage(AppPreferences.defaults).environment(\.readerStyle,.mobile)
             #if DEBUG
             .task {
@@ -74,6 +83,7 @@ NavigationStack {
                     }
                     MobileNotificationControls()
                     GolemVoiceSettings()
+                    GolemAppearanceSettings()
                     Section("Automation on your Mac") {
                         ForEach(["dotCheckIns","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch"],id:\.self){key in
                             Toggle(policyLabel(key),isOn:Binding(get:{policies[key] ?? true},set:{value in policies[key]=value;control("settings",[key:value])}))
