@@ -73,6 +73,7 @@ NavigationStack {
                         Button("Disconnect Golem",role:.destructive){store.forget()}
                     }
                     MobileNotificationControls()
+                    GolemVoiceSettings()
                     Section("Automation on your Mac") {
                         ForEach(["dotCheckIns","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch"],id:\.self){key in
                             Toggle(policyLabel(key),isOn:Binding(get:{policies[key] ?? true},set:{value in policies[key]=value;control("settings",[key:value])}))
