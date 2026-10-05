@@ -41,6 +41,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: GolemAppIcon
         INFOPLIST_KEY_CFBundleDisplayName: Golem
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Golem listens for your spoken reply after he reads his to you.
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Golem turns what you say into a message to him, on this Mac when possible.
         CODE_SIGN_ENTITLEMENTS: GolemApp/Golem.entitlements
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: Apple Development
