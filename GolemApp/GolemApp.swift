@@ -62,6 +62,7 @@ struct GolemCommands:Commands {
         GolemAvatar.shared.refreshIfStale()
         for _ in 0..<100 where model.dot==nil {try? await Task.sleep(for:.milliseconds(100))}
         if model.dot != nil {model.showingDot=true}
+        GolemTalk.shared.start(model)
         #if DEBUG
         await GolemCapture.runIfRequested(model)
         #endif
@@ -83,6 +84,7 @@ struct GolemRoot:View {
             } else {ProgressView("Opening Golem…")}
         }
         .frame(minWidth:640,minHeight:500)
+        .toolbar{GolemVoiceToolbar()}
         .background(ChatWindowReader{model.mainChatWindow=$0})
         .onAppear { if model.showingDot { model.showingDot=false } }
         .sheet(isPresented:$model.editingDotMemory){DotMemorySheet()}
@@ -134,6 +136,7 @@ struct GolemServiceSettings:View {
                 Button("Sweep Email Now"){service.command("sweep")}
             }.disabled(!service.transport.connected)
             Section("Interface") {Button("Show Mini"){model.showingDot=true}}
+            GolemTalkSettings()
             GolemPushSettings()
             Section("iPhone and iPad") {
                 Toggle("Allow mobile connections",isOn:Binding(get:{CompanionServer.shared.isEnabled},set:{CompanionServer.shared.setEnabled($0)}))

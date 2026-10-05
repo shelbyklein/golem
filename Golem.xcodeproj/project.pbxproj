@@ -82,6 +82,7 @@
 		5A7B96139442883836FF6FCF /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AFD14EA844AA5DFEEC2564 /* JSON.swift */; };
 		5C21DBC2117CE6723319068B /* GolemRig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37E8C935C250AE977402D207 /* GolemRig.swift */; };
 		5CA68C917DE8B3AC380A210A /* Diagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B72011AB904B1F23B9AA5BA /* Diagnostics.swift */; };
+		5D9E053D357D8D1A1F6CBF80 /* GolemTalk.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF288FAF079650A9E8BD3F0E /* GolemTalk.swift */; };
 		5DE607341593E1248B2E0C26 /* GitHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94442D585FDD6DD143FE474B /* GitHub.swift */; };
 		5F08884DAFFF173C6C1228CF /* ModelPresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFE25478572980E3246C0A2C /* ModelPresets.swift */; };
 		615C165EAA1BD198461527F4 /* GolemRigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF42F010A3F464504C831F /* GolemRigView.swift */; };
@@ -368,6 +369,7 @@
 		A51DFE09E690C3416D4AFA29 /* MobilePushNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobilePushNotifications.swift; sourceTree = "<group>"; };
 		A5A6CE0FDAF2B47F3B15FDF6 /* RuntimePreferenceProjection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimePreferenceProjection.swift; sourceTree = "<group>"; };
 		AC9E24A51B9954739AA133F8 /* UsageMeter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageMeter.swift; sourceTree = "<group>"; };
+		AF288FAF079650A9E8BD3F0E /* GolemTalk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemTalk.swift; sourceTree = "<group>"; };
 		B2E2C7A5E65AFC3085D168F2 /* GolemMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemMobileApp.swift; sourceTree = "<group>"; };
 		B4A54E8B1198E625DB226372 /* TranscriptViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptViews.swift; sourceTree = "<group>"; };
 		B69D0154FCC7A7F3B5CAC7EB /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
@@ -634,6 +636,7 @@
 				055AB9833679CBB07881DA04 /* Golem.entitlements */,
 				F384DFD5EFABDD97295AB50B /* GolemApp.swift */,
 				F4E1D4F004807A7A06EC5F02 /* GolemCapture.swift */,
+				AF288FAF079650A9E8BD3F0E /* GolemTalk.swift */,
 			);
 			path = GolemApp;
 			sourceTree = "<group>";
@@ -947,6 +950,7 @@
 				E897B40D1CB1485B9E299B81 /* GolemRigView.swift in Sources */,
 				ACDCA49730149EB844C26E5B /* GolemServiceClient.swift in Sources */,
 				A62AEE04DF56EAB8B3375E10 /* GolemSidePanel.swift in Sources */,
+				5D9E053D357D8D1A1F6CBF80 /* GolemTalk.swift in Sources */,
 				8FA0AFF5DEB020171785428C /* HTMLPreview.swift in Sources */,
 				28A6365AAE049532EC235AB8 /* HTTPFileTransfer.swift in Sources */,
 				A7CD5C33FF6083352A085129 /* HostClient.swift in Sources */,
@@ -1178,6 +1182,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Golem;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Golem listens for your spoken reply after he reads his to you.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Golem turns what you say into a message to him, on this Mac when possible.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1248,6 +1254,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Golem;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Golem listens for your spoken reply after he reads his to you.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Golem turns what you say into a message to him, on this Mac when possible.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
