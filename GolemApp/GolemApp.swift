@@ -79,11 +79,12 @@ struct GolemRoot:View {
             } else if !RuntimeClient.shared.connected {
                 ContentUnavailableView("Chatterbox service unavailable",systemImage:"network.slash",description:Text(RuntimeClient.shared.problem ?? "Connecting…"))
             } else if let assistant=model.dot {
-                ChatView(session:assistant,sidebar:AnyView(GolemSidePanel(session:assistant,showsAvatar:false)))
+                ChatView(session:assistant, standaloneWindow:true)
             } else {ProgressView("Opening Golem…")}
         }
         .frame(minWidth:640,minHeight:500)
         .background(ChatWindowReader{model.mainChatWindow=$0})
+        .onAppear { if model.showingDot { model.showingDot=false } }
         .sheet(isPresented:$model.editingDotMemory){DotMemorySheet()}
         .onChange(of:model.dot?.id){_,id in model.selectedID=id}
         .task {
@@ -133,6 +134,7 @@ struct GolemServiceSettings:View {
                 Button("Sweep Email Now"){service.command("sweep")}
             }.disabled(!service.transport.connected)
             Section("Interface") {Button("Show Mini"){model.showingDot=true}}
+            GolemPushSettings()
             Section("iPhone and iPad") {
                 Toggle("Allow mobile connections",isOn:Binding(get:{CompanionServer.shared.isEnabled},set:{CompanionServer.shared.setEnabled($0)}))
                 if CompanionServer.shared.isEnabled {
@@ -147,5 +149,99 @@ struct GolemServiceSettings:View {
         }
         .formStyle(.grouped).frame(width:620,height:540)
         .task{while !Task.isCancelled{await service.refresh();await CompanionServer.shared.refreshProjection();try? await Task.sleep(for:.seconds(3))}}
+    }
+}
+
+
+/// Settings are projected from the process that actually sends notifications.
+struct GolemPushSettings: View {
+    @State private var optedIn = false
+    @State private var configured = false
+    @State private var enabled = false
+    @State private var delivery = "Checking notification service…"
+    @State private var actionStatus: String?
+    @State private var busy = false
+    @State private var available = false
+
+    var body: some View {
+        Section("Push notifications") {
+            Toggle("Send Golem notifications", isOn: Binding(get: { optedIn }, set: { value in
+                busy = true
+                Task {
+                    defer { busy = false }
+                    do { _ = try await RuntimeClient.shared.request("setGolemPushEnabled", body: ["enabled": .bool(value)]) }
+                    catch { actionStatus = explain(error) }
+                    await refresh()
+                }
+            })).disabled(busy || !available)
+            Text(delivery).font(.callout).textSelection(.enabled)
+            if available && !configured {
+                Text("No APNs signing key is configured on this Mac. Import the existing key in Chatterbox’s iPhone settings first.").font(.caption).foregroundStyle(.secondary)
+            } else if available && !enabled {
+                Text("Mobile notifications or mobile connections are disabled on this Mac.").font(.caption).foregroundStyle(.secondary)
+            }
+            Button(busy ? "Waiting…" : "Authorize Keychain Access") {
+                busy = true
+                actionStatus = "In the macOS prompt for chatterboxd, enter your Mac login password and choose Always Allow."
+                Task {
+                    defer { busy = false }
+                    do {
+                        let reply = try await RuntimeClient.shared.request("authorizePush", timeout: .seconds(180))
+                        actionStatus = reply["status"]?.string ?? "No authorization result returned."
+                    } catch { actionStatus = explain(error) }
+                    await refresh()
+                }
+            }.disabled(busy || !available || !configured)
+            ForEach(CompanionServer.shared.devices.filter { $0.product == "golem" }) { device in
+                HStack {
+                    Text(device.name)
+                    Spacer()
+                    if device.push?.enabled == true {
+                        Button("Send Test") { sendTest(device.id) }.disabled(busy || !available || !enabled)
+                    } else {
+                        Text("Enable notifications on device").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }
+            if CompanionServer.shared.devices.allSatisfy({ $0.product != "golem" }) {
+                Text("Pair Golem on your iPhone or iPad below, then enable notifications there.").font(.caption).foregroundStyle(.secondary)
+            }
+            if let actionStatus { Text(actionStatus).font(.caption).textSelection(.enabled) }
+            Text("Golem alerts arrive in the Golem iPhone/iPad app. The Mac must be awake; its shared background service sends them even when both app windows are closed. Apple acceptance confirms sending; check your phone to confirm receipt.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .task {
+            while !Task.isCancelled {
+                await refresh()
+                do { try await Task.sleep(for: .seconds(3)) } catch { return }
+            }
+        }
+    }
+    private func explain(_ error: Error) -> String {
+        let message = error.localizedDescription
+        return message.contains("unsupported") || message.contains("unknown") || message.contains("permission_denied")
+            ? "The notification service needs an update and restart to support Golem’s push controls." : message
+    }
+    private func refresh() async {
+        do {
+            let reply = try await RuntimeClient.shared.request("pushStatus", body: ["product": "golem"])
+            optedIn = reply["optedIn"]?.bool ?? false
+            configured = reply["configured"]?.bool ?? false
+            enabled = reply["enabled"]?.bool ?? false
+            delivery = reply["status"]?.string ?? "No delivery status returned."
+            available = true
+        } catch { available = false; delivery = explain(error) }
+    }
+    private func sendTest(_ id: UUID) {
+        busy = true
+        actionStatus = "Sending a Golem test notification…"
+        Task {
+            defer { busy = false }
+            do {
+                let reply = try await RuntimeClient.shared.request("testPush", body: ["product": "golem", "deviceID": .string(id.uuidString)], timeout: .seconds(45))
+                actionStatus = reply["status"]?.string ?? "No delivery result returned."
+            } catch { actionStatus = explain(error) }
+            await refresh()
+        }
     }
 }

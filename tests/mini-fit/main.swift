@@ -17,7 +17,19 @@ setbuf(stdout, nil)
     dot.setTitle("Golem")
     dot.draft = "Keep my draft"
     dot.appendItem(DisplayItem(kind:.assistant,text:"Your calendar is clear this afternoon.",phase:.final))
+    let full=NSWindow(contentRect:NSRect(x:100,y:100,width:640,height:500),styleMask:[.titled,.closable],backing:.buffered,defer:false)
+    full.isReleasedWhenClosed=false
+    model.mainChatWindow=full
+    model.revealMainChatWindow={full.makeKeyAndOrderFront(nil)}
+    full.orderFront(nil)
     model.showingDot = true
+    precondition(!full.isVisible,"Showing mini left full chat visible")
+    model.dotMiniWindow!.openFullChat()
+    precondition(full.isVisible && !model.showingDot,"Opening full chat did not hide mini")
+    model.showingDot=true
+    precondition(!full.isVisible,"Returning to mini left full chat visible")
+    print("PASS mini and full chat are mutually exclusive")
+    if ProcessInfo.processInfo.environment["MINI_WINDOW_MODE_ONLY"] == "1" { model.showingDot=false; full.close(); return }
     let mini=model.dotMiniWindow!, panel=mini.panel!
     let screen=NSScreen.main!.visibleFrame
     panel.setFrame(NSRect(x:screen.maxX-450,y:screen.minY+40,width:400,height:420),display:true)
