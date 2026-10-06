@@ -6,7 +6,11 @@ import CryptoKit
 /// Only this process writes assistant policy state and journal.json.
 @MainActor final class GolemJobs {
     struct Job:Codable {var id:String;var label:String;var text:String;var submitted=false}
-    struct State:Codable {var schema=1;var jobs:[Job]=[];var seen:Set<String>=[];var problem:String?;var paused=false;var emailAttempt:Date?;var emailThrough:Date?;var emailProblem:String?;var emailAccounts:[String]?;var controls:[String:CommandReceipt]?=[:]}
+    struct State:Codable {var schema=1;var jobs:[Job]=[];var seen:Set<String>=[];var problem:String?;var paused=false;var emailAttempt:Date?;var emailThrough:Date?;var emailProblem:String?;var emailAccounts:[String]?;var controls:[String:CommandReceipt]?=[:]
+        /// Consecutive failed sweeps, since when, and whether the user has been told.
+        var emailFailures:Int?;var emailFailingSince:Date?;var emailAlerted:Bool?
+        /// Important mail found while catching up, briefed once when the watcher reaches the present.
+        var emailBacklog:[EmailSweep.Email]?;var emailBacklogSince:Date?}
     struct Entry:Codable {var id:UUID;var date:Date;var kind:String;var title:String;var detail:String?;var chat:UUID?;var chatName:String?}
     private(set) var state:State
     private(set) var entries:[Entry]
@@ -101,31 +105,87 @@ import CryptoKit
     }
     private func sweep(now:Date){
         let interval:TimeInterval=(9..<17).contains(Calendar.current.component(.hour,from:now)) ? 900:1800
-        guard !state.paused,!sweeping,now.timeIntervalSince(state.emailAttempt ?? .distantPast)>=interval else{return}
+        // While catching up, the next window follows straight on; otherwise wait the usual interval.
+        let behind=now.timeIntervalSince(state.emailThrough ?? now)>interval
+        // Catching up: straight on after a success; a failed piece is retried smaller after two minutes.
+        let wait:TimeInterval=behind ? ((state.emailFailures ?? 0)==0 ? 0:120):interval
+        guard !state.paused,!sweeping,now.timeIntervalSince(state.emailAttempt ?? .distantPast)>=wait else{return}
         guard let codex=CodexAppServer.locateBinary() else {
             state.emailAttempt=now
-            state.emailProblem="Email watcher cannot start Codex. Check Golem’s app-specific codexPath for a missing executable."
-            state.problem=state.emailProblem;save();return
+            failed("Email watcher cannot start Codex. Check Golem’s app-specific codexPath for a missing executable.",now:now);return
         }
+        // A test fixture left in the real preferences once made every sweep "succeed" at nothing.
+        if !RuntimePaths.data.path.hasPrefix("/tmp/golem-"),EmailCatchUp.looksLikeFixture(codex) {
+            state.emailAttempt=now
+            failed("Email watcher is set to run a test provider instead of Codex (\(codex)). Remove codexPath from Golem’s preferences.",now:now);return
+        }
+        if let skipped=EmailCatchUp.skipped(through:state.emailThrough,now:now),let through=state.emailThrough {
+            journal(id:"email-skipped:\(Int(through.timeIntervalSince1970))",title:"Older email not swept",detail:"Email between \(through.formatted()) and \(skipped.formatted()) was older than a week when the watcher recovered and wasn’t checked.",kind:"activity",chat:nil)
+        }
+        guard let window=EmailCatchUp.window(through:state.emailThrough,failures:state.emailFailures ?? 0,now:now) else{return}
         state.emailAttempt=now;save();sweeping=true
-        let since=max(state.emailThrough ?? now.addingTimeInterval(-3600),now.addingTimeInterval(-57600))
         Task {
             defer{sweeping=false}
-            let result=await EmailSweep.run(codex:codex,model:AppPreferences.defaults.string(forKey:"dotEmailModel") ?? "gpt-6-luna",prompt:EmailSweep.prompt(name:"Golem",since:since,now:now))
+            let result=await EmailSweep.run(codex:codex,model:AppPreferences.defaults.string(forKey:"dotEmailModel") ?? "gpt-6-luna",prompt:EmailSweep.prompt(name:"Golem",since:window.since,until:window.until))
             guard !state.paused else{return}
             switch result {
-            case .failure(let error):state.emailProblem=error;state.problem=error;save()
+            case .failure(let error):failed(error,now:Date())
             case .success(let emails,let accounts):
                 if state.problem==state.emailProblem{state.problem=nil}
                 state.emailProblem=nil;state.emailAccounts=accounts
-                for email in emails {
-                    let identity="email:\(email.account):\(email.id.isEmpty ? email.subject : email.id)"
-                    journal(id:"journal:\(identity)",title:"Email from \(email.from)",detail:"\(email.subject): \(email.why) Suggested: \(email.action)",kind:"activity",chat:nil)
-                    enqueue(id:identity,label:"Email from \(email.from)",text:"Email candidate: \(email.subject) (\(email.account)). \(email.why) Suggested next step: \(email.action). \(email.link). Before reporting, check your conversation context and, for project alerts, list/read the matching project chat. Correlate the alert with existing work and link to that chat when relevant. If it is routine, already addressed, unchanged from an earlier alert, or needs no new user action, reply exactly NO_REPORT. Important school, appointments, life admin and USA Archery deserve contextual attention; ordinary autopay notices and speculative announcements stay quiet. Otherwise give a brief contextual report. This sweep only read mail; do not send, draft, archive, label, mark read or change any email.")
+                state.emailFailures=nil;state.emailFailingSince=nil;state.emailAlerted=nil
+                let fresh=emails.filter{!state.seen.contains(identity($0))}
+                for email in fresh {
+                    journal(id:"journal:\(identity(email))",title:"Email from \(email.from)",detail:"\(email.subject): \(email.why) Suggested: \(email.action)",kind:"activity",chat:nil)
                 }
-                state.emailThrough=now;save();drain()
+                if window.catchingUp || state.emailBacklog != nil {
+                    if state.emailBacklogSince==nil{state.emailBacklogSince=window.since}
+                    var backlog=state.emailBacklog ?? []
+                    for email in fresh where !backlog.contains(where:{identity($0)==identity(email)}){backlog.append(email)}
+                    state.emailBacklog=backlog
+                }
+                if window.catchingUp {
+                    state.emailThrough=window.until;save()
+                    // The next piece of the backlog, straight away (once this sweep has finished).
+                    Task{sweep(now:Date())}
+                    return
+                }
+                state.emailThrough=window.until
+                if let backlog=state.emailBacklog {
+                    briefCatchUp(backlog,since:state.emailBacklogSince ?? window.since,until:window.until)
+                    state.emailBacklog=nil;state.emailBacklogSince=nil
+                } else {
+                    for email in fresh {enqueue(id:identity(email),label:"Email from \(email.from)",text:Self.emailJob(email))}
+                }
+                save();drain()
             }
         }
+    }
+    private func identity(_ email:EmailSweep.Email)->String {"email:\(email.account):\(email.id.isEmpty ? email.subject : email.id)"}
+    private static func emailJob(_ email:EmailSweep.Email)->String {
+        "Email candidate: \(email.subject) (\(email.account)). \(email.why) Suggested next step: \(email.action). \(email.link). Before reporting, check your conversation context and, for project alerts, list/read the matching project chat. Correlate the alert with existing work and link to that chat when relevant. If it is routine, already addressed, unchanged from an earlier alert, or needs no new user action, reply exactly NO_REPORT. Important school, appointments, life admin and USA Archery deserve contextual attention; ordinary autopay notices and speculative announcements stay quiet. Otherwise give a brief contextual report. This sweep only read mail; do not send, draft, archive, label, mark read or change any email."
+    }
+    /// Everything found while catching up, as one briefing.
+    private func briefCatchUp(_ emails:[EmailSweep.Email],since:Date,until:Date){
+        let ids=emails.map(identity)
+        guard !emails.isEmpty else{return}
+        let list=emails.enumerated().map{"\($0.offset+1). \($0.element.subject) — from \($0.element.from) (\($0.element.account)). \($0.element.why) Suggested: \($0.element.action). \($0.element.link)"}.joined(separator:"\n")
+        enqueue(id:"email-catchup:\(Int(since.timeIntervalSince1970))",label:"Email catch-up",text:"Email catch-up: the email watcher was behind and has now read the mail from \(since.formatted()) to \(until.formatted()). These candidates passed the sweep's filter:\n\(list)\nGive ONE short catch-up briefing, most important first. Check your conversation context and, for project alerts, list/read the matching project chat; link to it when relevant. Leave out anything routine, already addressed, unchanged from an earlier alert, or needing no new user action. Important school, appointments, life admin and USA Archery deserve contextual attention; ordinary autopay notices and speculative announcements stay quiet. If nothing needs the user, reply exactly NO_REPORT. This sweep only read mail; do not send, draft, archive, label, mark read or change any email.")
+        // Later sweeps that see the same messages stay quiet.
+        for id in ids{state.seen.insert(id)}
+    }
+    /// A failed sweep keeps the cursor, shrinks the next window, and tells the user once if it persists.
+    private func failed(_ error:String,now:Date){
+        state.emailProblem=error;state.problem=error
+        state.emailFailures=(state.emailFailures ?? 0)+1
+        if state.emailFailingSince==nil{state.emailFailingSince=now}
+        save()
+        guard EmailCatchUp.shouldAlert(failingSince:state.emailFailingSince,failures:state.emailFailures ?? 0,alerted:state.emailAlerted ?? false,now:now),
+              let since=state.emailFailingSince else{return}
+        state.emailAlerted=true;save()
+        let text="Email watching has been failing since \(since.formatted(date:.abbreviated,time:.shortened)), so I may have missed important mail. Last error: \(error) I’m retrying with smaller windows; nothing will be skipped once it recovers."
+        journal(id:"email-failing:\(Int(since.timeIntervalSince1970))",title:"Email watching is failing",detail:text,kind:"activity",chat:nil)
+        Task {_ = try? await client.request("notify",body:["title":"Golem","text":.string(text)],id:"notification-email-failing-\(Int(since.timeIntervalSince1970))")}
     }
     func enqueue(id:String,label:String,text:String){
         guard !state.seen.contains(id),!state.jobs.contains(where:{$0.id==id}) else{return}
@@ -198,7 +258,8 @@ import CryptoKit
                 _ = try await client.request("sendAutomatic",body:["label":.string(job.label),"text":.string(job.text)],id:stableUUID("job:\(job.id)").uuidString)
                 if let i=state.jobs.firstIndex(where:{$0.id==job.id}){state.jobs[i].submitted=true}
                 journal(id:job.id,title:job.label,detail:nil,kind:"activity",chat:nil)
-                state.jobs.removeAll{$0.submitted};state.problem=nil;save()
+                // A failing email watcher stays visible until a sweep succeeds.
+                state.jobs.removeAll{$0.submitted};if state.problem != state.emailProblem{state.problem=nil};save()
             }catch{state.problem=error.localizedDescription;save()}
         }
     }
