@@ -9,10 +9,13 @@ struct GolemModelSettings: View {
     @State private var selection = ""
     @State private var status: String?
     @State private var busy = false
+    @State private var codexModels: [CodexModelInfo] = []
+    @State private var loadingModels = false
+    @State private var modelProblem: String?
     private var choices: [(String, String)] {
         provider == "claude"
             ? ClaudeModels.shared.models.map { ($0.value, $0.displayName) }
-            : CodexAppServer.shared.models.map { ($0.model, $0.displayName) }
+            : codexModels.map { ($0.model, $0.displayName) }
     }
     var body: some View {
         Section("Golem model") {
@@ -24,8 +27,14 @@ struct GolemModelSettings: View {
             }
             Picker("Default model", selection: $selection) {
                 ForEach(choices, id: \.0) { value, name in Text(name).tag(value) }
-                if !choices.contains(where: { $0.0 == selection }) { Text(selection + " (not verified)").tag(selection) }
+                if !choices.contains(where: { $0.0 == selection }) {
+                    Text(selection + (loadingModels ? " (loading…)" : choices.isEmpty ? " (list unavailable)" : " (not offered)"))
+                        .tag(selection)
+                }
             }
+            if loadingModels { ProgressView("Loading Codex models from Chatterbox…").controlSize(.small) }
+            if let modelProblem { Text(modelProblem).font(.caption).textSelection(.enabled) }
+            Button("Refresh models") { Task { await loadModels() } }.disabled(loadingModels)
             Text("Applies only to Golem. Worker chat defaults and the Codex email watcher are unchanged. Supported reasoning effort is set to the lowest available level.")
                 .font(.caption).foregroundStyle(.secondary)
             if provider == "claude" {
@@ -36,15 +45,43 @@ struct GolemModelSettings: View {
                 Button("Save Default") { save(apply: false) }
                 Button("Save and Apply to Golem") { save(apply: true) }
                     .disabled(app.dot == nil || app.dot?.isRunning == true)
-            }.disabled(busy || !choices.contains(where: { $0.0 == selection }))
+            }.disabled(busy || loadingModels || !choices.contains(where: { $0.0 == selection }))
             if app.dot?.isRunning == true { Text("Apply after Golem finishes his current reply.").font(.caption) }
             if let status { Text(status).font(.caption).textSelection(.enabled) }
         }
         .task {
             provider = savedProvider; selection = savedModel
             await ClaudeModels.shared.refresh()
-            do { try await CodexAppServer.shared.refreshModels() }
-            catch { status = "Codex model availability: \(error.localizedDescription)" }
+            await loadModels()
+        }
+        .onChange(of: RuntimeClient.shared.connected) { _, connected in
+            if connected { Task { await loadModels() } }
+        }
+    }
+    private func loadModels() async {
+        guard !loadingModels else { return }
+        loadingModels = true
+        defer { loadingModels = false }
+        do {
+            if RuntimeClient.usesDaemon {
+                let result = try await RuntimeClient.shared.request("codexModels", timeout: .seconds(30))
+                guard let list = result.array else { throw RuntimeFailure("Invalid model list from Chatterbox.") }
+                codexModels = list.compactMap { model in
+                    guard let id = model["model"]?.string else { return nil }
+                    return CodexModelInfo(model: id, displayName: model["displayName"]?.string ?? id,
+                                          defaultEffort: model["defaultEffort"]?.string ?? "medium",
+                                          efforts: model["efforts"]?.array?.compactMap(\.string) ?? [],
+                                          hidden: model["hidden"]?.bool ?? false,
+                                          isDefault: model["isDefault"]?.bool ?? false)
+                }
+            } else {
+                try await CodexAppServer.shared.refreshModels()
+                codexModels = CodexAppServer.shared.models
+            }
+            modelProblem = codexModels.isEmpty ? "Codex returned no available models. Refresh to try again." : nil
+        } catch {
+            codexModels = []
+            modelProblem = "Couldn't load Codex models from Chatterbox: \(error.localizedDescription)"
         }
     }
     private func save(apply: Bool) {
@@ -62,7 +99,7 @@ struct GolemModelSettings: View {
                         body["effort"] = .string(ClaudeModels.shared.info(model).efforts.first ?? "")
                     } else {
                         body["codexModel"] = .string(model)
-                        body["codexEffort"] = CodexAppServer.shared.models.first(where: { $0.model == model })?.efforts.first.map(JSON.string) ?? .null
+                        body["codexEffort"] = codexModels.first(where: { $0.model == model })?.efforts.first.map(JSON.string) ?? .null
                         body["codexFolder"] = .string(AppModel.dotFolder)
                     }
                     _ = try await RuntimeClient.shared.request("settings", body: .object(body))

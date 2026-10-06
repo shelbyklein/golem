@@ -1,0 +1,6 @@
+# Expanding mini backdrop
+User requests smaller resting circle overlapped by avatar, expanding to rounded full-mini backdrop when clicked open. Linear under existing workflow waiver. Use same persisted color/opacity, maintain avatar position, click/drag/double-click, bubble/composer. One background shape behind content: 72% avatar frame diameter collapsed; 4-point panel inset/24-point corners expanded. Reduced motion shorter. Validate Mac build and native renders of both shape states; install after backup. No commit/push requested. Rollback prior app backup/source diff.
+
+Mac build/diff/signature checks passed; installed and relaunched via Launch Services. Isolated native shape render inspected, but avatar failed to appear in cached Canvas render; actual overlap and click transition remain visually unverified. No commit/push.
+
+Follow-up accepted by Shelby: circle now 64% of avatar frame; clear glass with separate persisted color/opacity overlay; independently persisted circle/expanded edge blur (0–16 pt, default 2). Reply title removed. Panel fits reply content instead of retaining saved minimum height. Latest Mac build and signature checks passed; installed /Applications/Golem.app. User reviewed live screenshots and accepted final layout, authorizing push. Native screenshot automation remains unavailable.
