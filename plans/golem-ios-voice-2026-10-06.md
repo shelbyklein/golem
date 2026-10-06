@@ -1,6 +1,6 @@
 # Golem iPhone voice: streaming speech, talk-over, warm mic, pause setting
 
-Issue: _pending_ · Handoff: [golem-ios-voice-2026-10-06-handoff.md](golem-ios-voice-2026-10-06-handoff.md) · Baseline: Golem `77328d8` (main), Core `076fe5e` (main) · Mac counterpart: [golem-voice-streaming-2026-10-06.md](golem-voice-streaming-2026-10-06.md) (PR #10, not a dependency)
+Issue: https://github.com/shelbyklein/golem/issues/11 · Handoff: [golem-ios-voice-2026-10-06-handoff.md](golem-ios-voice-2026-10-06-handoff.md) · Baseline: Golem `77328d8` (main), Core `076fe5e` (main) · Mac counterpart: [golem-voice-streaming-2026-10-06.md](golem-voice-streaming-2026-10-06.md) (PR #10, not a dependency)
 
 ## Summary
 Golem on iPhone reads replies aloud and can listen back, but only after his whole reply has arrived, the microphone restarts around every turn, and you can't interrupt him. This brings the Mac round's improvements to the iPhone app: speech starts with each finished sentence while the reply streams in, you can talk over him to stop him, the mic stays live through the conversation, and the send pause becomes a setting. With AirPods, his voice stays full quality and the iPhone's own microphone listens.

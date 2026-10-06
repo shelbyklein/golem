@@ -191,6 +191,7 @@
 		C93FC01CFE3F39A24A23D99F /* TranscriptViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A54E8B1198E625DB226372 /* TranscriptViews.swift */; };
 		CA6818A8C8C9AE8BF6ED02F1 /* PinsAndExtras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63ACA53E2E66102689032124 /* PinsAndExtras.swift */; };
 		CAE46D06AB757C101ABB1723 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623AC7081BABE58848DF8C02 /* AppPreferences.swift */; };
+		CD3396D968BBBAC17ED95221 /* GolemAudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40581CB80B99DA7BE4F18885 /* GolemAudioSession.swift */; };
 		CFABBB045DDD314C44BDC491 /* SlashCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC222C4B53756F944133FFC /* SlashCommands.swift */; };
 		D212C5E25D9AD28EA9A876E3 /* CodexModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1620AD2153696E9449DF1008 /* CodexModelCatalog.swift */; };
 		D3B45C9EEEAE9BD646BCE5F5 /* Attachments.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF685061AB7D8E512F379355 /* Attachments.swift */; };
@@ -312,6 +313,7 @@
 		3C63E5B770F3AA5BE269BC19 /* ChatToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatToolbar.swift; sourceTree = "<group>"; };
 		3CC8F0A3392590AD8C611EA4 /* GolemJobs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemJobs.swift; sourceTree = "<group>"; };
 		3F17D1A4655DC36CABCEE63E /* PinsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PinsSection.swift; sourceTree = "<group>"; };
+		40581CB80B99DA7BE4F18885 /* GolemAudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemAudioSession.swift; sourceTree = "<group>"; };
 		41F81930A73065FBECD38CE0 /* GolemMiniBackdrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemMiniBackdrop.swift; sourceTree = "<group>"; };
 		4305CD379566B602B07778D9 /* EmailWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailWatch.swift; sourceTree = "<group>"; };
 		4318B9BEB97FB2D01223291C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -626,6 +628,7 @@
 				7B9C85B3079B83A0760BE14F /* ConnectView.swift */,
 				B8295E97C90F32F8FF05EFC2 /* Dictation.swift */,
 				03B42DB84549B26EC597A958 /* GolemAppearance.swift */,
+				40581CB80B99DA7BE4F18885 /* GolemAudioSession.swift */,
 				396F7F58E41B0863DC038D2C /* GolemVoice.swift */,
 				1AD15667EF7F7372831F72E6 /* MobileAppearance.swift */,
 				EF14BEF7AE792853F96129BC /* MobileComposerDraft.swift */,
@@ -1079,6 +1082,7 @@
 				6BAE8128DC34C5165929A69B /* ElevenLabsSpeechSettings.swift in Sources */,
 				F6B8B3A26A2CCE92A31B73BD /* FilePaths.swift in Sources */,
 				4D4EF4EF90F2303F9F83CDC2 /* GolemAppearance.swift in Sources */,
+				CD3396D968BBBAC17ED95221 /* GolemAudioSession.swift in Sources */,
 				3323E1BD1843C8D644F54A5A /* GolemConversationShortcuts.swift in Sources */,
 				D3FE6E6A3AD66B21712A00AA /* GolemMobileApp.swift in Sources */,
 				A19720C3DF9C35D15DEC4A0D /* GolemRig.swift in Sources */,
