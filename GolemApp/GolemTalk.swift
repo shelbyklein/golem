@@ -290,6 +290,16 @@ import SwiftUI
     /// Explicit, one-shot deployment check; never runs during normal launch or sends a chat.
     static func runSmokeIfRequested() async {
         let args = CommandLine.arguments
+        if let index = args.firstIndex(of: "--golem-input-check"), args.indices.contains(index + 1) {
+            let output = URL(fileURLWithPath: args[index + 1])
+            let listener = GolemListener()
+            let ready = await listener.warmUp()
+            if ready { listener.beginUtterance() }
+            let evidence = "Engine ready with input buffers: \(ready)\nRecognition opened: \(listener.listening)\nProblem: \(listener.problem ?? "none")\n"
+            listener.stop()
+            try? Data(evidence.utf8).write(to: output)
+            return
+        }
         guard let index = args.firstIndex(of: "--golem-voice-smoke"), args.indices.contains(index + 1) else { return }
         let output = URL(fileURLWithPath: args[index + 1])
         let started = output.appendingPathExtension("started")

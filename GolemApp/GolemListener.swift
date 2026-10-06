@@ -37,6 +37,7 @@ private final class AudioRequestBox: @unchecked Sendable {
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var receivedAudio = false
     func resetAudioDiagnostics() { lock.lock(); receivedAudio = false; lock.unlock() }
+    var hasAudio: Bool { lock.lock(); defer { lock.unlock() }; return receivedAudio }
     func set(_ new: SFSpeechAudioBufferRecognitionRequest?) -> SFSpeechAudioBufferRecognitionRequest? {
         lock.lock(); defer { lock.unlock() }
         let old = request
@@ -97,19 +98,38 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
             let box = self.box
             // A Bluetooth input can change sample rate when its microphone activates; nil lets the engine negotiate.
             input.installTap(onBus: 0, bufferSize: 1024, format: nil) { buffer, _ in box.append(buffer) }
+            // AirPods can change routes during engine.start(). Observe before starting so
+            // the first stop/configuration event cannot fall through the startup gap.
+            let token = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil) { [weak self] _ in
+                self?.configurationChanged()
+            }
+            install(engine, observer: token)
             engine.prepare()
             do { try engine.start() } catch {
-                input.removeTap(onBus: 0)
+                stop()
                 failure = "Couldn't start listening: \(error.localizedDescription)"
                 Self.log.error("Engine start failed (voice processing \(voiceProcessing))")
                 continue
             }
             Self.log.notice("Voice processing \(voiceProcessing ? "on" : "off", privacy: .public)")
-            let token = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil) { [weak self] _ in
-                self?.configurationChanged()
+            // "start returned" isn't readiness: wait for actual buffers and a settled route.
+            let deadline = Date().addingTimeInterval(3)
+            var readySince: Date?
+            while Date() < deadline {
+                if isRunning, box.hasAudio {
+                    if readySince == nil { readySince = Date() }
+                    if Date().timeIntervalSince(readySince!) >= 0.2 {
+                        Self.log.notice("Microphone input ready after route settled")
+                        return nil
+                    }
+                } else {
+                    readySince = nil
+                    configurationChanged()
+                }
+                try? await Task.sleep(for: .milliseconds(50))
             }
-            install(engine, observer: token)
-            return nil
+            failure = "The microphone didn't deliver audio. Check the AirPods connection and the input in System Settings → Sound, then start Conversation again."
+            stop()
         }
         return failure
     }
@@ -120,6 +140,7 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
     }
 
     func begin(_ handler: @escaping @Sendable (RecognitionEvent) -> Void) -> String? {
+        if !isRunning { configurationChanged() }
         guard isRunning, let recognizer else { return "Listening isn't ready. Try Conversation again." }
         end()
         let request = SFSpeechAudioBufferRecognitionRequest()
