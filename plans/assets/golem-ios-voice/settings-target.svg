@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="560" viewBox="0 0 390 560" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="15">
+  <rect width="390" height="560" fill="#f2f2f7"/>
+  <text x="20" y="48" font-size="30" font-weight="700" fill="#000">Voice</text>
+  <text x="36" y="86" font-size="12" fill="#6e6e73">VOICE</text>
+  <rect x="16" y="96" width="358" height="370" rx="12" fill="#fff"/>
+  <text x="36" y="128" fill="#000">Read new replies aloud</text>
+  <rect x="306" y="112" width="51" height="31" rx="15.5" fill="#34c759"/><circle cx="341" cy="127.5" r="13.5" fill="#fff"/>
+  <line x1="36" y1="146" x2="374" y2="146" stroke="#e5e5ea"/>
+  <text x="36" y="176" fill="#000">Then listen for my reply</text>
+  <rect x="306" y="160" width="51" height="31" rx="15.5" fill="#34c759"/><circle cx="341" cy="175.5" r="13.5" fill="#fff"/>
+  <line x1="36" y1="194" x2="374" y2="194" stroke="#e5e5ea"/>
+  <rect x="20" y="198" width="350" height="86" rx="6" fill="#fff8e1"/>
+  <text x="36" y="222" fill="#000">Send after a pause of</text>
+  <text x="357" y="222" text-anchor="end" fill="#000">1.0 s</text>
+  <text x="36" y="250" fill="#000">0.5 s</text>
+  <line x1="80" y1="245" x2="318" y2="245" stroke="#e5e5ea" stroke-width="4" stroke-linecap="round"/>
+  <line x1="80" y1="245" x2="128" y2="245" stroke="#007aff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="128" cy="245" r="13" fill="#fff" stroke="#d1d1d6"/>
+  <text x="357" y="250" text-anchor="end" fill="#000">3 s</text>
+  <text x="36" y="274" font-size="12" fill="#6e6e73">Sends sooner after a finished sentence.</text>
+  <text x="372" y="236" font-size="10" fill="#b26a00" transform="rotate(90 372 236)">NEW</text>
+  <line x1="36" y1="290" x2="374" y2="290" stroke="#e5e5ea"/>
+  <text x="36" y="318" fill="#000">ElevenLabs speaking speed</text>
+  <text x="357" y="318" text-anchor="end" fill="#000">1.00×</text>
+  <line x1="80" y1="345" x2="318" y2="345" stroke="#007aff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="230" cy="345" r="13" fill="#fff" stroke="#d1d1d6"/>
+  <line x1="36" y1="372" x2="374" y2="372" stroke="#e5e5ea"/>
+  <text x="36" y="400" fill="#000">Voice</text><text x="357" y="400" text-anchor="end" fill="#6e6e73">George ⌃</text>
+  <line x1="36" y1="418" x2="374" y2="418" stroke="#e5e5ea"/>
+  <text x="36" y="446" fill="#007aff">Test Voice</text>
+  <text x="32" y="490" font-size="12" fill="#6e6e73">He reads each reply as it arrives and listens the whole time: talk</text>
+  <text x="32" y="506" font-size="12" fill="#6e6e73">over him to interrupt; what you say sends when you pause. With</text>
+  <text x="32" y="522" font-size="12" fill="#6e6e73">headphones, the iPhone's microphone hears you, so keep it nearby.</text>
+  <text x="20" y="552" font-size="10" fill="#6e6e73">Target: one new row (highlighted) and a footer sentence; everything else unchanged.</text>
+</svg>
