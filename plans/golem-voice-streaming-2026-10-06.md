@@ -37,7 +37,7 @@ Settings → Voice, current: ![current](assets/golem-voice-streaming/settings-cu
 - Barge-in is tuned for headphones: triggers on the first recognized word (≥ 2 characters); voice-processing echo cancellation is enabled when the input supports it as a guard for speakers.
 - Streaming uses sentence-sized ElevenLabs HTTP requests with prefetch, not the WebSocket API (simpler, reuses the speed payload and key path; revisit if latency is still poor).
 - Pause setting range 0.5–3.0 s, default 1.0 s; shortened to `min(pause, 0.7)` when the transcript ends in `.`, `?` or `!`.
-- Everything lives in `GolemApp/` (plus a test runner script); no Core changes.
+- Voice implementation stays in `GolemApp/`. User follow-up adds a small Core mini presentation hook: hide only the completed spoken reply, keep avatar/composer/listening open; a new reply or reopening restores text. Interrupted, muted and length-capped replies remain available.
 
 ## Success criteria
 1. **First words fast.** Fixture (`scripts/test-golem-voice.sh speaker`, stub provider): the first segment is requested ≤ 200 ms after the first sentence completes while the reply is still streaming, and segments play in order with ≤ 2 fetches in flight. Installed app, user check: audible first words within ~1.5 s of the first sentence appearing.
@@ -62,7 +62,7 @@ Settings → Voice, current: ![current](assets/golem-voice-streaming/settings-cu
 | VS-05 | Coordinator → **user gate** | PR; then, on the user's go-ahead, back up and install over `/Applications/Golem.app`, relaunch via Launch Services, verify signature and live criteria 1–4. | PR open with fixture output; install only after approval; user confirms criteria 1–4 live. |
 
 ## Exclusions and preserved behavior
-- Not in scope: iPhone Golem, Core (`chatterbox-core`) changes, ElevenLabs WebSocket streaming, server-side VAD, changing the 8 s / 30 s give-up timers, push notifications, the Shortcuts intents themselves, Chatterbox.
+- Not in scope: iPhone Golem, broader Core engine changes, ElevenLabs WebSocket streaming, server-side VAD, changing the 8 s / 30 s give-up timers, push notifications, the Shortcuts intents themselves, Chatterbox.
 - Must not change: Mute and Conversation buttons and their semantics; "Read new replies aloud" / "Then listen for my reply" settings and keys; ElevenLabs key sourced from Chatterbox Secrets; speaking-speed setting; 🎤-from-typed-text (prefix) behavior; typed-text-stops-listening guard; the mini's draft display; replies present at launch stay silent; nothing spoken while minimized; iPhone pairing/push; conversation data.
 
 ## Test plan
@@ -86,3 +86,16 @@ VS-05 replaces `/Applications/Golem.app`: back up to `~/Library/Application Supp
 - Handoff: prepared at `plans/golem-voice-streaming-2026-10-06-handoff.md`.
 - Now/later: the user's "make a plan, write a spec, and have sonnet agents do the work" + "do it" is read as **now**.
 - Readiness: pass · 2026-10-06 · R1–R13 checked; R3 flow diagram + settings screenshot/mockup; R12 covers the install.
+
+## Continuation and validation (2026-10-06)
+Both requested Sonnet lanes completed and were committed/pushed; speaker and listener merges already existed on the integration branch. Current Codex coordinator resumes the unfinished integration only; no replacement lanes were spawned. Exact resumed coordinator model/effort metadata is not exposed; existing session workflow waiver retained.
+
+User follow-up: hide the mini reply bubble after its audio completes. Adds a Core presentation-only hook keyed by message ID, with short existing fade, content-height shrink and no session/draft changes. Full transcript stays intact. A capped reply keeps text on screen. Muting/barge-in do not falsely acknowledge unread audio.
+
+Build: `build/GolemPlan`, Mac Debug passed. Fixtures use fake recognition, stub provider and silent native synthesis; no ElevenLabs calls/credits. Actual microphone/AirPods, speaker echo cancellation, paid latency and interruption remain pending. Shortcuts Start/End dispatch/error/cancellation check passed.
+
+Settings render: assets/golem-voice-streaming/settings-implemented.png is an isolated SwiftUI render (no secrets), not an installed-app screenshot. Native UI capture failed with Sky Computer Use native pipe startup failed.
+
+VS-02/VS-03 fixture acceptance passed. VS-04 integration implemented and local checks passing, but its real smoke-test criterion remains pending user approval. VS-05 PR prepared; installation and live acceptance await the explicit plan gate.
+
+Final local verification: all eight fixture groups PASS (buttons, conversation, listener, speaker, talk, double-click, expand, open). Conversation covers bubble hiding and height shrink, muted/interrupted text retention, warm capture, mid-turn send, typed prefix, End preserving drafts and typing cancellation. Shortcuts dispatch/error/cancellation fixture PASS. Mac build and signature verification PASS. No real paid speech or microphone test initiated.

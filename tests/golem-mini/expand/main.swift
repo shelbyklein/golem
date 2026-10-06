@@ -9,6 +9,9 @@ setbuf(stdout, nil)
     dot.appendItem(DisplayItem(kind:.assistant,text:(1...60).map{"Line \($0) of a long briefing."}.joined(separator:"\n"),phase:.final))
     model.showingDot = true
     let mini = model.dotMiniWindow!, panel = mini.panel!
+    // This fixture resizes the panel under the real pointer. Keep hover acknowledgement
+    // from collapsing it while checking geometry (as during a voice conversation).
+    mini.conversationActive = true
     panel.setFrame(NSRect(x:200,y:120,width:400,height:520),display:true)
     try await Task.sleep(for:.milliseconds(600))
     let before = panel.frame

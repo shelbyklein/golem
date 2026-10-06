@@ -120,3 +120,6 @@ Branch and head SHA; files changed; fixture command and its full output; build r
 
 ## Exclusions (all roles)
 iPhone, Core, ElevenLabs WebSocket, VAD, give-up timers, push, Shortcuts intents, Chatterbox; installing over `/Applications`; any paid speech call; committing another session's uncommitted changes (there are none in this repo at baseline — verify with `git status`).
+
+## Resumed integration
+Both Sonnet lanes finished before coordinator switch; their existing commits were reused. Codex coordinator resumed VS-04 (exact model/effort metadata not available). User requested hiding the mini text bubble after completed audio: minimal Core hook allowed for this follow-up, keyed to the spoken reply; does not close the composer/listener or delete transcript. End, mute, barge-in, minimized and length-capped reads do not hide unread text. Install/paid smoke gate remains pending.

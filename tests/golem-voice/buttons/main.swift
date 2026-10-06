@@ -7,7 +7,7 @@ setbuf(stdout, nil)
     UserDefaults.standard.setVolatileDomain(["dotCheckIns":false,"dotWatchWaiting":false,"dotSummarizeFinished":false,"dotEmailWatch":false,"companionEnabled":false,"notifyNeeds":false,"notifyFinished":false,"keepMacAwake":false,GolemMiniWindow.collapsedKey:false,"golemTalkListens":false],forName:UserDefaults.argumentDomain)
     let model = AppModel(), dot = model.ensureDot()
     model.showingDot = true; try await Task.sleep(for:.milliseconds(500))
-    let talk = GolemTalk.shared; talk.start(model)
+    let talk = GolemTalk.shared; talk.speaker.macVoiceVolume = 0; talk.start(model)
     let voice = model.dotMiniWindow!.voice!
     precondition(!voice.muted())
     voice.toggleMute(); precondition(voice.muted() && !talk.reads,"mute didn't turn off reading")

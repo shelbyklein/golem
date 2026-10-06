@@ -13,6 +13,7 @@ struct GolemTalkSettings: View {
             if talk.reads {
                 Toggle("Then listen for my reply", isOn: Binding(get: { talk.listens }, set: { talk.listens = $0 }))
             }
+            GolemListenerSettings()
             ElevenLabsSpeedControl()
             if hasKey {
                 if voices.isEmpty {
@@ -34,7 +35,7 @@ struct GolemTalkSettings: View {
         } header: {
             Text("Voice")
         } footer: {
-            Text((hasKey ? "Replies are spoken with ElevenLabs using your ELEVENLABS key from Chatterbox's Secrets: their text goes to ElevenLabs and uses your credits. " : "") + "Open means the mini isn't minimized, or his chat window is on screen. After reading, he listens and sends what you say when you pause; stay quiet, type, or minimize him to stop. Speech is recognized on this Mac when possible.")
+            Text((hasKey ? "Replies are spoken with ElevenLabs using your ELEVENLABS key from Chatterbox's Secrets: their text goes to ElevenLabs and uses your credits. " : "") + "Open means the mini isn't minimized, or his chat window is on screen. He reads each reply as it arrives and listens the whole time: talk over him to interrupt, and what you say sends when you pause. Stay quiet, type, or minimize him to stop. Speech is recognized on this Mac when possible.")
         }
         .task {
             guard let key = ElevenLabs.key() else { hasKey = false; return }

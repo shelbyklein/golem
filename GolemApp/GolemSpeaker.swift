@@ -25,6 +25,8 @@ struct ElevenLabsProvider: SpeechProvider {
     private(set) var problem: String?
     /// Which voice last read part of a reply, and when: "ElevenLabs (streamed)" or "This Mac's voice".
     private(set) var lastSpoken: (engine: String, at: Date)?
+    /// A capped reply still has unread text on screen and must keep its bubble.
+    var fullyRead: Bool { done && !capped }
     /// The reply was read to the end. Not called after `stop()`.
     @ObservationIgnored var onFinished: (() -> Void)?
     /// Volume of the Mac's voice (fixtures set 0 so tests stay quiet).

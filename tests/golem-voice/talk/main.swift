@@ -10,7 +10,7 @@ setbuf(stdout, nil)
     dot.appendItem(DisplayItem(kind:.assistant,text:"Old reply before launch.",phase:.final))
     model.showingDot = true
     try await Task.sleep(for:.milliseconds(500))
-    let talk = GolemTalk.shared; talk.start(model)
+    let talk = GolemTalk.shared; talk.speaker.macVoiceVolume = 0; talk.start(model)
     try await Task.sleep(for:.milliseconds(300))
     precondition(!talk.speaking,"Read an old reply at start")
     dot.appendItem(DisplayItem(kind:.assistant,text:"Testing.",phase:.final))

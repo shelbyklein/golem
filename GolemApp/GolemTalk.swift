@@ -3,8 +3,8 @@ import OSLog
 import SwiftUI
 
 /// Talking with Golem on the Mac: while he's open (the mini, or his chat window on screen), he
-/// reads each new reply aloud, then listens for yours and sends it once you pause. Saying
-/// nothing, typing, or putting him away ends the back-and-forth.
+/// reads each reply aloud as it arrives, listens the whole time, and sends what you say once you
+/// pause. Talking over him interrupts him. Staying quiet, typing, or putting him away ends it.
 ///
 /// The voice is `GolemSpeaker`, the ears `GolemListener`; this ties them to his conversation.
 @MainActor @Observable final class GolemTalk: NSObject {
@@ -14,7 +14,7 @@ import SwiftUI
 
     var reads: Bool {
         get { access(keyPath: \.reads); return AppPreferences.defaults.object(forKey: Self.readsKey) as? Bool ?? true }
-        set { withMutation(keyPath: \.reads) { AppPreferences.defaults.set(newValue, forKey: Self.readsKey) }; if !newValue { stop() } }
+        set { withMutation(keyPath: \.reads) { AppPreferences.defaults.set(newValue, forKey: Self.readsKey) }; if !newValue { speaker.stop() } }
     }
     var listens: Bool {
         get { access(keyPath: \.listens); return AppPreferences.defaults.object(forKey: Self.listensKey) as? Bool ?? true }
@@ -26,14 +26,19 @@ import SwiftUI
     var listening: Bool { listener.listening }
     var lastSpoken: (engine: String, at: Date)? { speaker.lastSpoken }
 
-    /// After you stop talking, how long a pause sends; and how long silence ends listening.
-    static let pause: TimeInterval = 1.5, giveUp: TimeInterval = 8
+    /// How long silence with no words ends listening outside a conversation (30 s inside one).
+    static let giveUp: TimeInterval = 8
 
-    let speaker = GolemSpeaker()
-    let listener = GolemListener()
+    let speaker: GolemSpeaker
+    let listener: GolemListener
+    /// How a finished utterance reaches the chat; fixtures record instead.
+    @ObservationIgnored var send: (ChatSession, String, [Attachment]) -> Void = { $0.send($1, attachments: $2) }
 
     @ObservationIgnored private weak var model: AppModel?
+    /// The newest reply seen; replies there at launch stay quiet.
     @ObservationIgnored private var lastReply: UUID?
+    /// The reply being read, if its reading was allowed when it began.
+    @ObservationIgnored private var spokenReply: UUID?
     @ObservationIgnored private var watcher: Task<Void, Never>?
     @ObservationIgnored private var captureGeneration = UUID()
     @ObservationIgnored private var startingListening = false
@@ -43,12 +48,15 @@ import SwiftUI
     @ObservationIgnored private var prefix = ""
     private func shown(_ words: String) -> String { prefix.isEmpty ? words : words.isEmpty ? prefix : prefix + " " + words }
 
-    override init() {
+    init(speaker: GolemSpeaker? = nil, listener: GolemListener? = nil) {
+        self.speaker = speaker ?? GolemSpeaker()
+        self.listener = listener ?? GolemListener()
         super.init()
-        speaker.onFinished = { [weak self] in self?.finishedSpeaking() }
-        listener.onTranscript = { [weak self] words in self?.transcribed(words) }
-        listener.onUtterance = { [weak self] words in self?.finishListening(words) }
-        listener.onFailure = { [weak self] message in self?.problem = message; self?.stop() }
+        self.speaker.onFinished = { [weak self] in self?.finishedSpeaking() }
+        self.listener.onTranscript = { [weak self] words in self?.transcribed(words) }
+        self.listener.onSpeechDetected = { [weak self] in self?.speechDetected() }
+        self.listener.onUtterance = { [weak self] words in self?.finishListening(words) }
+        self.listener.onFailure = { [weak self] message in self?.problem = message; self?.stop() }
         mirror()
     }
 
@@ -100,13 +108,15 @@ import SwiftUI
 
     private func follow() {
         withObservationTracking {
-            _ = model?.dot.flatMap(Self.latestReply)?.id
+            let reply = model?.dot.flatMap(Self.latestReply)
+            _ = reply?.id; _ = reply?.text; _ = reply?.phase
             _ = model?.dot?.isRunning
         } onChange: {
             Task { @MainActor [weak self] in self?.replyChanged(); self?.follow() }
         }
     }
 
+    /// The newest reply, streaming or finished.
     static func latestReply(_ session: ChatSession) -> DisplayItem? {
         session.items.last { $0.kind == .assistant && $0.phase != .commentary && !$0.text.isEmpty }
     }
@@ -120,28 +130,43 @@ import SwiftUI
         return false
     }
 
+    /// Each change to the newest reply: a new one starts being read as it streams; the rest of
+    /// its text follows; `final` once its turn has ended.
     private func replyChanged() {
-        guard let dot = model?.dot, !dot.isRunning, let reply = Self.latestReply(dot), reply.id != lastReply else { return }
-        lastReply = reply.id
-        guard reads || conversationActive, isOpen else { return }
-        let active = conversationActive
-        stop()
-        conversationActive = active
-        speaker.provider = ElevenLabs.key().map(ElevenLabsProvider.init)
-        speaker.update(reply: reply.id, text: reply.text, final: true)
-        watchWhileActive()
+        guard let dot = model?.dot, let reply = Self.latestReply(dot) else { return }
+        if reply.id != lastReply {
+            lastReply = reply.id
+            guard reads, isOpen else { spokenReply = nil; return }
+            spokenReply = reply.id
+            speaker.provider = ElevenLabs.key().map(ElevenLabsProvider.init)
+            listenWhileSpeaking()
+            watchWhileActive()
+        }
+        guard spokenReply == reply.id else { return }
+        speaker.update(reply: reply.id, text: reply.text, final: !dot.isRunning)
+    }
+
+    /// The ears stay open while he talks, so you can interrupt him.
+    private func listenWhileSpeaking() {
+        guard listens || conversationActive, !listener.listening, !startingListening, let dot = model?.dot,
+              dot.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, dot.draftAttachments.isEmpty else { return }
+        Task { @MainActor in await startListening() }
     }
 
     private func finishedSpeaking() {
         Self.log.notice("Reply audio finished; conversation=\(self.conversationActive), open=\(self.isOpen)")
-        guard listens || conversationActive, isOpen else { stopWatching(); return }
-        let generation = captureGeneration
-        Task { @MainActor in
-            // A beat after his voice ends, so the microphone doesn't catch the tail of it.
-            try? await Task.sleep(for: .milliseconds(300))
-            guard generation == captureGeneration, !speaking, isOpen else { return }
-            await startListening()
+        if speaker.fullyRead, let id = spokenReply {
+            model?.dotMiniWindow?.hideSpokenReply(id)
         }
+        guard listens || conversationActive, isOpen else { stopWatching(); return }
+        if !listener.listening { Task { @MainActor in await startListening() } }
+    }
+
+    /// Your first word while he's talking: he stops and lets you finish.
+    private func speechDetected() {
+        guard speaker.speaking else { return }
+        Self.log.notice("Barge-in: stopping playback")
+        speaker.stop()
     }
 
     // MARK: - Buttons
@@ -150,10 +175,10 @@ import SwiftUI
     var muted: Bool { !reads }
     func toggleMute() { reads.toggle() }
 
-    /// The listen button: talk now (he stops speaking), or stop listening.
+    /// The Conversation button: talk now (he stops speaking), or end the conversation.
     func toggleListening() {
         if conversationActive || startingListening || listening { stop(); return }
-        if speaking { stop() }
+        if speaking { speaker.stop() }
         conversationActive = true
         // Listening needs him open; from the minimized mini, open it so you see your words.
         if !isOpen, let mini = model?.dotMiniWindow, model?.showingDot == true { mini.setCollapsed(false) }
@@ -167,7 +192,8 @@ import SwiftUI
 
     // MARK: - Listening
 
-    /// Automatically only into an empty box; from the button, after whatever's typed.
+    /// Automatically only into an empty box; from the button, after whatever's typed. The engine
+    /// warms once and stays up; each call opens one utterance on it.
     private func startListening(manual: Bool = false) async {
         guard !listening, !startingListening, let dot = model?.dot else { return }
         guard manual || (dot.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && dot.draftAttachments.isEmpty) else {
@@ -184,8 +210,8 @@ import SwiftUI
         let ready = await listener.warmUp()
         guard generation == captureGeneration else { return }
         guard ready else { conversationActive = false; problem = listener.problem; return }
+        guard isOpen else { return }
         listener.giveUp = conversationActive ? 30 : Self.giveUp
-        listener.pause = Self.pause
         listener.beginUtterance()
         if listener.listening { problem = nil; watchWhileActive() }
         else if let failure = listener.problem { conversationActive = false; problem = failure }
@@ -200,20 +226,27 @@ import SwiftUI
         dot.draft = shown(words)
     }
 
-    /// You paused (or said nothing): send what was heard, if anything.
+    /// You paused (or said nothing): send what was heard, if anything, and keep listening.
     private func finishListening(_ words: String) {
         let text = shown(words).trimmingCharacters(in: .whitespacesAndNewlines)
         let dot = model?.dot
         let attachments = dot?.draftAttachments ?? []
         if !words.isEmpty, dot?.draft == shown(heard) { dot?.draft = ""; dot?.draftAttachments = [] }
         heard = ""
-        captureGeneration = UUID()
-        if !speaking { stopWatching() }
-        if !words.isEmpty, let dot { dot.send(text, attachments: attachments) }
-        else {
+        prefix = ""
+        if words.isEmpty {
+            // Nothing said while he talked: keep the ears open for him finishing.
+            if speaker.speaking, isOpen { listener.beginUtterance(); return }
             if conversationActive { problem = "No speech was recognized. Conversation paused; press Conversation to try again." }
             conversationActive = false
+            listener.stop()
+            if !speaking { stopWatching() }
+            return
         }
+        if let dot { send(dot, text, attachments) }
+        // In a conversation the microphone stays warm across turns; otherwise this listen is over.
+        if conversationActive, isOpen { listener.beginUtterance() }
+        else if !speaker.speaking { listener.stop(); stopWatching() }
     }
 
     /// Stops listening without sending. Anything heard stays in the box.
@@ -221,18 +254,21 @@ import SwiftUI
         captureGeneration = UUID()
         startingListening = false
         listener.cancelUtterance()
+        if !conversationActive { listener.stop() }
         if !speaking { stopWatching() }
     }
 
     func stop() {
         Self.log.notice("Conversation stopped; open=\(self.isOpen), listening=\(self.listening)")
         conversationActive = false
+        captureGeneration = UUID()
+        startingListening = false
         speaker.stop()
-        stopListening()
+        listener.stop()
         stopWatching()
     }
 
-    /// While speaking or listening: stop when he's put away.
+    /// While speaking or the microphone is up: stop everything when he's put away.
     private func watchWhileActive() {
         guard watcher == nil else { return }
         watcher = Task { @MainActor [weak self] in
@@ -240,7 +276,7 @@ import SwiftUI
                 do { try await Task.sleep(for: .milliseconds(250)) } catch { return }
                 guard let self, !Task.isCancelled else { return }
                 if !self.isOpen { self.stop(); return }
-                if !self.speaking && !self.listening { self.watcher = nil; return }
+                if !self.speaking && !self.listening && !self.listener.engineRunning { self.watcher = nil; return }
             }
         }
     }
