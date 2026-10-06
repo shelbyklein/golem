@@ -13,14 +13,14 @@ import Foundation
         var id: String
     }
 
-    static func prompt(name: String, since: Date, now: Date) -> String {
+    static func prompt(name: String, since: Date, until: Date) -> String {
         let format = DateFormatter()
         format.dateFormat = "EEEE, MMMM d, yyyy 'at' h:mm a zzz"
         let iso = ISO8601DateFormatter()
         return """
-        You are \(name)'s email sweep, running in the background for the user. Find the email that arrived in all of the user's Gmail accounts since \(format.string(from: since)) (\(iso.string(from: since)) UTC). Use your Gmail tools. Only read: never send, draft, archive, label, mark as read, delete, or change anything.
+        You are \(name)'s email sweep, running in the background for the user. Find the email that arrived in all of the user's Gmail accounts between \(format.string(from: since)) and \(format.string(from: until)) (\(iso.string(from: since)) to \(iso.string(from: until)) UTC). Use your Gmail tools. Only read: never send, draft, archive, label, mark as read, delete, or change anything.
 
-        To find it, search each account with exactly this query: after:\(Int(since.timeIntervalSince1970)) -in:sent -in:drafts (Gmail reads that number as the exact moment of the last sweep). Every result is new; don't filter by time yourself, since Gmail mixes time zones in its timestamps. Page through all results.
+        To find it, search each account with exactly this query: after:\(Int(since.timeIntervalSince1970)) before:\(Int(until.timeIntervalSince1970)) -in:sent -in:drafts (Gmail reads those numbers as exact moments). Every result is in the window; don't filter by time yourself, since Gmail mixes time zones in its timestamps. Page through all results. Judge each message's sender and subject first and open only the ones that could matter; obvious newsletters, promotions and automated receipts can be set aside from their metadata, so a busy window doesn't overflow your context.
 
         First read the user's notes: \(RuntimePaths.assistantMemoryFolder.path)/MEMORY.md and the files it points to (especially the accounts and \(name)'s jobs). Follow them on what counts as important. Flag verified, contextual matters requiring a decision or meaningful new information: school, appointments, life-admin deadlines, clients and work requests (USA Archery and its forwards included), and personal messages from real people. Read the relevant message/thread before deciding; a subject or snippet saying an announcement might contain updates is not enough.
 
@@ -82,7 +82,8 @@ import Foundation
             }
             struct Answer: Decodable { var status: String; var accountsChecked: [String]; var error: String; var emails: [Email] }
             guard let answer = try? JSONDecoder().decode(Answer.self, from: data) else {
-                return .failure("The sweep's answer couldn't be read.")
+                let shape = (try? JSONSerialization.jsonObject(with: data)) == nil ? "not JSON" : "JSON without the expected fields"
+                return .failure("The sweep's answer couldn't be read (\(data.count) bytes, \(shape)).")
             }
             guard answer.status == "ok", answer.error.isEmpty,
                   !answer.accountsChecked.isEmpty, answer.accountsChecked.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
@@ -92,6 +93,39 @@ import Foundation
         }.value
     }
 
+}
+
+/// Where the email watcher is and what it sweeps next. Pure, so it can be tested on its own.
+enum EmailCatchUp {
+    struct Window: Equatable { var since: Date; var until: Date; var catchingUp: Bool }
+    /// A window is at most this long, so a backlog is swept in pieces a sweep can handle.
+    static let step: TimeInterval = 3 * 3600
+    /// Each consecutive failure halves the window, down to this.
+    static let minimumStep: TimeInterval = 1800
+    /// Mail older than this is not swept automatically, and the gap is reported.
+    static let maximumBacklog: TimeInterval = 7 * 86400
+    /// Sweeps failing this long (and at least `alertFailures` times) earn the user one alert.
+    static let alertAfter: TimeInterval = 3600, alertFailures = 3
+
+    /// The next window from the last successful point; nil when there's nothing to sweep yet.
+    static func window(through: Date?, failures: Int, now: Date) -> Window? {
+        let since = max(through ?? now.addingTimeInterval(-3600), now.addingTimeInterval(-maximumBacklog))
+        let length = max(minimumStep, step / pow(2, Double(min(max(failures, 0), 8))))
+        let until = min(now, since.addingTimeInterval(length))
+        guard until.timeIntervalSince(since) >= 60 else { return nil }
+        return Window(since: since, until: until, catchingUp: now.timeIntervalSince(until) >= 60)
+    }
+
+    /// Mail between `through` and this was skipped for being older than the backlog limit.
+    static func skipped(through: Date?, now: Date) -> Date? {
+        guard let through, now.timeIntervalSince(through) > maximumBacklog else { return nil }
+        return now.addingTimeInterval(-maximumBacklog)
+    }
+
+    static func shouldAlert(failingSince: Date?, failures: Int, alerted: Bool, now: Date) -> Bool {
+        guard let failingSince, !alerted else { return false }
+        return failures >= alertFailures && now.timeIntervalSince(failingSince) >= alertAfter
+    }
 }
 
 private final class EmailSweepRunner:@unchecked Sendable {
