@@ -39,6 +39,9 @@ struct GolemCommands:Commands {
         let _ = model.revealMainChatWindow={[openWindow] in openWindow(id:"main")}
         CommandGroup(replacing:.newItem){
             Button("Chat with Golem"){model.dotMiniWindow?.openFullChat() ?? openWindow(id:"main")}.keyboardShortcut("o")
+            if let session = model.dot {
+                RestartThreadControl(session: session, beforeRestart: { GolemTalk.shared.stop() })
+            }
             // Before his conversation arrives, showing the mini would invent an empty local one.
             Button(model.showingDot ? "Hide Golem Mini":"Show Golem Mini"){model.showingDot.toggle()}.keyboardShortcut("j").disabled(model.dot==nil)
         }
@@ -64,6 +67,7 @@ struct GolemCommands:Commands {
         if model.dot != nil {model.showingDot=true}
         GolemTalk.shared.start(model)
         #if DEBUG
+        await GolemModelActivation.runIfRequested(model)
         await GolemCapture.runIfRequested(model)
         #endif
     }
@@ -85,6 +89,15 @@ struct GolemRoot:View {
         }
         .frame(minWidth:640,minHeight:500)
         .toolbar{GolemVoiceToolbar()}
+        .safeAreaInset(edge: .bottom) {
+            if let problem = GolemTalk.shared.problem {
+                Label(problem, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout).foregroundStyle(.orange)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12).background(.regularMaterial)
+            }
+        }
         .background(ChatWindowReader{model.mainChatWindow=$0})
         .onAppear { if model.showingDot { model.showingDot=false } }
         .sheet(isPresented:$model.editingDotMemory){DotMemorySheet()}
@@ -135,7 +148,11 @@ struct GolemServiceSettings:View {
                 Button("Check In Now"){service.command("checkIn")}
                 Button("Sweep Email Now"){service.command("sweep")}
             }.disabled(!service.transport.connected)
-            Section("Interface") {Button("Show Mini"){model.showingDot=true}}
+            Section("Interface") {
+                Button("Show Mini"){model.showingDot=true}
+                GolemMiniBackdropSettings()
+            }
+            GolemModelSettings()
             GolemTalkSettings()
             GolemPushSettings()
             Section("iPhone and iPad") {

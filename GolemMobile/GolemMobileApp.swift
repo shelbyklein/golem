@@ -56,12 +56,15 @@ struct GolemMobileRoot:View {
                 }
             }
         } else {
-        TabView {
-            GolemHome().tabItem{Label("Golem",systemImage:"sparkles")}
-            GolemJournalMobile().tabItem{Label("Journal",systemImage:"book")}
-            settingsView.tabItem{Label("Settings",systemImage:"gearshape")}
+        TabView(selection: $destination) {
+            GolemHome().tabItem{Label("Golem",systemImage:"sparkles")}.tag(Destination.golem as Destination?)
+            GolemJournalMobile().tabItem{Label("Journal",systemImage:"book")}.tag(Destination.journal as Destination?)
+            settingsView.tabItem{Label("Settings",systemImage:"gearshape")}.tag(Destination.settings as Destination?)
         }
         }
+        }
+        .onChange(of: GolemConversationRequest.shared.pending?.id, initial: true) { _, id in
+            if id != nil { destination = .golem }
         }
         .safeAreaInset(edge:.top){if let availability{Text(availability).font(.caption).frame(maxWidth:.infinity).padding(8).background(.thinMaterial)}}
         .task(id:scenePhase){
