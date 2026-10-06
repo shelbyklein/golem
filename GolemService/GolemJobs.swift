@@ -107,7 +107,8 @@ import CryptoKit
         let interval:TimeInterval=(9..<17).contains(Calendar.current.component(.hour,from:now)) ? 900:1800
         // While catching up, the next window follows straight on; otherwise wait the usual interval.
         let behind=now.timeIntervalSince(state.emailThrough ?? now)>interval
-        let wait:TimeInterval=behind && (state.emailFailures ?? 0)==0 ? 0:interval
+        // Catching up: straight on after a success; a failed piece is retried smaller after two minutes.
+        let wait:TimeInterval=behind ? ((state.emailFailures ?? 0)==0 ? 0:120):interval
         guard !state.paused,!sweeping,now.timeIntervalSince(state.emailAttempt ?? .distantPast)>=wait else{return}
         guard let codex=CodexAppServer.locateBinary() else {
             state.emailAttempt=now
