@@ -91,6 +91,7 @@
 		5CA68C917DE8B3AC380A210A /* Diagnostics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B72011AB904B1F23B9AA5BA /* Diagnostics.swift */; };
 		5D9E053D357D8D1A1F6CBF80 /* GolemTalk.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF288FAF079650A9E8BD3F0E /* GolemTalk.swift */; };
 		5DE607341593E1248B2E0C26 /* GitHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94442D585FDD6DD143FE474B /* GitHub.swift */; };
+		5ECDABFF5B55CA554AE51CBD /* GolemSpeaker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7E680E5CC47D3030070390 /* GolemSpeaker.swift */; };
 		5F08884DAFFF173C6C1228CF /* ModelPresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFE25478572980E3246C0A2C /* ModelPresets.swift */; };
 		615C165EAA1BD198461527F4 /* GolemRigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEF42F010A3F464504C831F /* GolemRigView.swift */; };
 		61B188FBAE58FF7E57D58EF2 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AFD14EA844AA5DFEEC2564 /* JSON.swift */; };
@@ -187,10 +188,12 @@
 		C32BEBC8E141113E57E87FC0 /* CompanionMutationLedger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D9C7D8AE4B7E1A036214411 /* CompanionMutationLedger.swift */; };
 		C5EAB1A3FC20AFFA6596047C /* GolemAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73E3658A7A57779938DD403E /* GolemAvatar.swift */; };
 		C6C2BF8B542E434188A98004 /* DocumentViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74B5DFEF9FE8A22C69911FA2 /* DocumentViewer.swift */; };
+		C871F24CBBB2A19829D40B30 /* GolemListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0714D685B77E9A45E6A383BE /* GolemListener.swift */; };
 		C8FC5A7AD85696D0B1FF0713 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B69D0154FCC7A7F3B5CAC7EB /* AVKit.framework */; };
 		C93FC01CFE3F39A24A23D99F /* TranscriptViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A54E8B1198E625DB226372 /* TranscriptViews.swift */; };
 		CA6818A8C8C9AE8BF6ED02F1 /* PinsAndExtras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63ACA53E2E66102689032124 /* PinsAndExtras.swift */; };
 		CAE46D06AB757C101ABB1723 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623AC7081BABE58848DF8C02 /* AppPreferences.swift */; };
+		CF1B7558365B0AC49A3C0986 /* GolemVoiceSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15050ED6AFF076A8CD324B31 /* GolemVoiceSettings.swift */; };
 		CFABBB045DDD314C44BDC491 /* SlashCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC222C4B53756F944133FFC /* SlashCommands.swift */; };
 		D212C5E25D9AD28EA9A876E3 /* CodexModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1620AD2153696E9449DF1008 /* CodexModelCatalog.swift */; };
 		D3B45C9EEEAE9BD646BCE5F5 /* Attachments.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF685061AB7D8E512F379355 /* Attachments.swift */; };
@@ -278,12 +281,14 @@
 		02A24E03546A297BEF8F60D5 /* IssuePrompts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssuePrompts.swift; sourceTree = "<group>"; };
 		03B42DB84549B26EC597A958 /* GolemAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemAppearance.swift; sourceTree = "<group>"; };
 		055AB9833679CBB07881DA04 /* Golem.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Golem.entitlements; sourceTree = "<group>"; };
+		0714D685B77E9A45E6A383BE /* GolemListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemListener.swift; sourceTree = "<group>"; };
 		076ED868D6D54B3F6B9B53EB /* GolemMobileProductTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = GolemMobileProductTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		09828F46B79D0E9E780743B4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0ACBC7FD33F9C58A254DE34C /* EmailSweep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailSweep.swift; sourceTree = "<group>"; };
 		0B18B8FEB671C252784E772C /* ItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemView.swift; sourceTree = "<group>"; };
 		113DB9F3A75585D4AFA28BC0 /* GolemControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemControl.swift; sourceTree = "<group>"; };
 		13BCF0E81CAA66205A3BCBF2 /* BackgroundTasks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTasks.swift; sourceTree = "<group>"; };
+		15050ED6AFF076A8CD324B31 /* GolemVoiceSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemVoiceSettings.swift; sourceTree = "<group>"; };
 		15321162B37789D733F189C8 /* DotActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotActivity.swift; sourceTree = "<group>"; };
 		1620AD2153696E9449DF1008 /* CodexModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexModelCatalog.swift; sourceTree = "<group>"; };
 		1732B1866303260ADD06D8D4 /* CompanionDocuments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionDocuments.swift; sourceTree = "<group>"; };
@@ -360,6 +365,7 @@
 		7B72011AB904B1F23B9AA5BA /* Diagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnostics.swift; sourceTree = "<group>"; };
 		7B9C85B3079B83A0760BE14F /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
 		7C37D3311E8B526E08030E2B /* MarkdownText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownText.swift; sourceTree = "<group>"; };
+		7D7E680E5CC47D3030070390 /* GolemSpeaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemSpeaker.swift; sourceTree = "<group>"; };
 		7D99F639DD8B068AA4DF9306 /* Usage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Usage.swift; sourceTree = "<group>"; };
 		81EA9D4880042ABEC2559D63 /* prompts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = prompts; path = Core/prompts; sourceTree = SOURCE_ROOT; };
 		83BF2087F461C14937184AED /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
@@ -675,8 +681,11 @@
 				055AB9833679CBB07881DA04 /* Golem.entitlements */,
 				F384DFD5EFABDD97295AB50B /* GolemApp.swift */,
 				F4E1D4F004807A7A06EC5F02 /* GolemCapture.swift */,
+				0714D685B77E9A45E6A383BE /* GolemListener.swift */,
 				6DC65077A08ECA31B7B25B16 /* GolemModelSettings.swift */,
+				7D7E680E5CC47D3030070390 /* GolemSpeaker.swift */,
 				AF288FAF079650A9E8BD3F0E /* GolemTalk.swift */,
+				15050ED6AFF076A8CD324B31 /* GolemVoiceSettings.swift */,
 			);
 			path = GolemApp;
 			sourceTree = "<group>";
@@ -992,6 +1001,7 @@
 				401262A31B30192B3D0363D2 /* GolemConversationShortcuts.swift in Sources */,
 				72CF629CD99C20E12242325E /* GolemIntegration.swift in Sources */,
 				A7479491E7A50E9F57621C6D /* GolemJournal.swift in Sources */,
+				C871F24CBBB2A19829D40B30 /* GolemListener.swift in Sources */,
 				4B76AD6BDFBEF96AF47FF707 /* GolemMiniBackdrop.swift in Sources */,
 				DD12D63AEB3963C79B310E42 /* GolemMiniWindow.swift in Sources */,
 				625E88FE634578C379365CA4 /* GolemModelSettings.swift in Sources */,
@@ -999,7 +1009,9 @@
 				E897B40D1CB1485B9E299B81 /* GolemRigView.swift in Sources */,
 				ACDCA49730149EB844C26E5B /* GolemServiceClient.swift in Sources */,
 				A62AEE04DF56EAB8B3375E10 /* GolemSidePanel.swift in Sources */,
+				5ECDABFF5B55CA554AE51CBD /* GolemSpeaker.swift in Sources */,
 				5D9E053D357D8D1A1F6CBF80 /* GolemTalk.swift in Sources */,
+				CF1B7558365B0AC49A3C0986 /* GolemVoiceSettings.swift in Sources */,
 				8FA0AFF5DEB020171785428C /* HTMLPreview.swift in Sources */,
 				28A6365AAE049532EC235AB8 /* HTTPFileTransfer.swift in Sources */,
 				A7CD5C33FF6083352A085129 /* HostClient.swift in Sources */,

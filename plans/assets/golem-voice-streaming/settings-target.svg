@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="330" viewBox="0 0 620 330" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="13">
+  <rect width="620" height="330" fill="#ececec"/>
+  <text x="20" y="28" font-size="11" font-weight="600" fill="#6e6e73">VOICE</text>
+  <rect x="20" y="38" width="580" height="272" rx="10" fill="#ffffff" stroke="#d9d9de"/>
+  <!-- row 1 -->
+  <text x="36" y="66" fill="#1d1d1f">Read new replies aloud while Golem is open</text>
+  <rect x="546" y="54" width="38" height="20" rx="10" fill="#34c759"/><circle cx="574" cy="64" r="8" fill="#fff"/>
+  <line x1="36" y1="80" x2="584" y2="80" stroke="#ececec"/>
+  <!-- row 2 -->
+  <text x="36" y="104" fill="#1d1d1f">Then listen for my reply</text>
+  <rect x="546" y="92" width="38" height="20" rx="10" fill="#34c759"/><circle cx="574" cy="102" r="8" fill="#fff"/>
+  <line x1="36" y1="118" x2="584" y2="118" stroke="#ececec"/>
+  <!-- row 3 NEW: pause slider -->
+  <rect x="24" y="124" width="572" height="54" rx="6" fill="#fff8e1"/>
+  <text x="36" y="142" fill="#1d1d1f">Send after a pause of</text>
+  <text x="584" y="142" text-anchor="end" fill="#1d1d1f" font-family="Menlo, monospace">1.0 s</text>
+  <line x1="36" y1="162" x2="584" y2="162" stroke="#c7c7cc" stroke-width="4" stroke-linecap="round"/>
+  <line x1="36" y1="162" x2="146" y2="162" stroke="#007aff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="146" cy="162" r="9" fill="#fff" stroke="#b5b5ba"/>
+  <text x="36" y="176" font-size="10" fill="#6e6e73">0.5 s</text>
+  <text x="584" y="176" font-size="10" fill="#6e6e73" text-anchor="end">3.0 s</text>
+  <text x="602" y="150" font-size="10" fill="#b26a00" transform="rotate(90 602 150)">NEW</text>
+  <line x1="36" y1="184" x2="584" y2="184" stroke="#ececec"/>
+  <!-- row 4 existing speed -->
+  <text x="36" y="206" fill="#1d1d1f">ElevenLabs speaking speed</text>
+  <text x="584" y="206" text-anchor="end" fill="#1d1d1f" font-family="Menlo, monospace">1.00×</text>
+  <line x1="36" y1="224" x2="584" y2="224" stroke="#c7c7cc" stroke-width="4" stroke-linecap="round"/>
+  <line x1="36" y1="224" x2="365" y2="224" stroke="#007aff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="365" cy="224" r="9" fill="#fff" stroke="#b5b5ba"/>
+  <line x1="36" y1="242" x2="584" y2="242" stroke="#ececec"/>
+  <!-- row 5 voice picker -->
+  <text x="36" y="266" fill="#1d1d1f">ElevenLabs voice</text>
+  <rect x="440" y="252" width="144" height="22" rx="5" fill="#fff" stroke="#c7c7cc"/>
+  <text x="450" y="267" fill="#1d1d1f">George</text><text x="570" y="267" fill="#6e6e73">⌃</text>
+  <line x1="36" y1="282" x2="584" y2="282" stroke="#ececec"/>
+  <!-- row 6 last read -->
+  <text x="36" y="302" fill="#1d1d1f">Last reply read with</text>
+  <text x="584" y="302" text-anchor="end" fill="#6e6e73">ElevenLabs (streamed), 2:14 PM</text>
+  <text x="20" y="326" font-size="10" fill="#6e6e73">Target: one new row (highlighted). Everything else stays as today. The footer text gains one sentence about barge-in.</text>
+</svg>
