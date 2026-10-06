@@ -34,8 +34,13 @@ final class GolemAppDelegate:NSObject,NSApplicationDelegate {
 
 struct GolemCommands:Commands {
     let model:AppModel
+    @Environment(\.openSettings) private var openSettings
     @Environment(\.openWindow) private var openWindow
     var body:some Commands {
+        let _ = GolemMiniWindow.openSettings = { [openSettings] in
+            NSApp.activate(ignoringOtherApps: true)
+            openSettings()
+        }
         let _ = model.revealMainChatWindow={[openWindow] in openWindow(id:"main")}
         CommandGroup(replacing:.newItem){
             Button("Chat with Golem"){model.dotMiniWindow?.openFullChat() ?? openWindow(id:"main")}.keyboardShortcut("o")
