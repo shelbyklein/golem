@@ -74,6 +74,7 @@ struct GolemCommands:Commands {
         #if DEBUG
         await GolemModelActivation.runIfRequested(model)
         await GolemCapture.runIfRequested(model)
+        await GolemTalk.runSmokeIfRequested()
         #endif
     }
 }

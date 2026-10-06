@@ -285,4 +285,35 @@ import SwiftUI
         watcher?.cancel()
         watcher = nil
     }
+
+    #if DEBUG
+    /// Explicit, one-shot deployment check; never runs during normal launch or sends a chat.
+    static func runSmokeIfRequested() async {
+        let args = CommandLine.arguments
+        guard let index = args.firstIndex(of: "--golem-voice-smoke"), args.indices.contains(index + 1) else { return }
+        let output = URL(fileURLWithPath: args[index + 1])
+        let started = output.appendingPathExtension("started")
+        guard !FileManager.default.fileExists(atPath: started.path),
+              FileManager.default.createFile(atPath: started.path, contents: Data()) else { return }
+        let speaker = GolemSpeaker()
+        guard let key = ElevenLabs.key() else {
+            try? Data("Smoke stopped: ElevenLabs key unavailable; no speech request sent.\n".utf8).write(to: output)
+            return
+        }
+        speaker.provider = ElevenLabsProvider(key: key)
+        let start = Date()
+        var first: TimeInterval?
+        var finished = false
+        speaker.onSegment = { _, _ in if first == nil { first = Date().timeIntervalSince(start) } }
+        speaker.onFinished = { finished = true }
+        speaker.update(reply: UUID(), text: "Golem's voice is ready.", final: true)
+        while !finished, Date().timeIntervalSince(start) < 45 {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        let provider = speaker.lastSpoken?.engine ?? "none"
+        let evidence = "Provider: \(provider)\nFirst playback callback: \(first.map { String(format: "%.3f s", $0) } ?? "none")\nFinished: \(finished)\nFallback: \(speaker.problem != nil)\n"
+        speaker.stop()
+        try? Data(evidence.utf8).write(to: output)
+    }
+    #endif
 }
