@@ -32,8 +32,11 @@ protocol RecognitionSource: AnyObject, Sendable {
 
 /// Hands the tap's buffers to whichever request is current.
 private final class AudioRequestBox: @unchecked Sendable {
+    private static let log = Logger(subsystem: "com.shelbyklein.Golem", category: "Conversation")
     private let lock = NSLock()
     private var request: SFSpeechAudioBufferRecognitionRequest?
+    private var receivedAudio = false
+    func resetAudioDiagnostics() { lock.lock(); receivedAudio = false; lock.unlock() }
     func set(_ new: SFSpeechAudioBufferRecognitionRequest?) -> SFSpeechAudioBufferRecognitionRequest? {
         lock.lock(); defer { lock.unlock() }
         let old = request
@@ -41,7 +44,10 @@ private final class AudioRequestBox: @unchecked Sendable {
         return old
     }
     func append(_ buffer: AVAudioPCMBuffer) {
-        lock.lock(); let current = request; lock.unlock()
+        lock.lock(); let current = request; let first = !receivedAudio; receivedAudio = true; lock.unlock()
+        if first {
+            Self.log.notice("Input audio arrived: \(buffer.frameLength, privacy: .public) frames at \(buffer.format.sampleRate, privacy: .public) Hz")
+        }
         current?.append(buffer)
     }
 }
@@ -73,9 +79,11 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
         guard let recognizer, recognizer.isAvailable else { return "Speech recognition isn't available right now." }
         if isRunning { return nil }
         var failure = Self.noInput
-        // Voice processing (echo cancellation) lets Golem hear you over his own voice; when this Mac's input
-        // refuses it, listen without it.
-        for voiceProcessing in [true, false] {
+        // Headphones need no speaker echo cancellation. VoiceProcessingIO can start successfully
+        // yet fail to deliver audio on a Bluetooth route; opt in only for speaker use.
+        let echoCancellation = AppPreferences.defaults.bool(forKey: GolemListener.echoCancellationKey)
+        box.resetAudioDiagnostics()
+        for voiceProcessing in echoCancellation ? [true, false] : [false] {
             let engine = AVAudioEngine()
             let input = engine.inputNode
             if voiceProcessing {
@@ -96,7 +104,7 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
                 Self.log.error("Engine start failed (voice processing \(voiceProcessing))")
                 continue
             }
-            Self.log.notice("Voice processing \(voiceProcessing ? "on" : "off")")
+            Self.log.notice("Voice processing \(voiceProcessing ? "on" : "off", privacy: .public)")
             let token = NotificationCenter.default.addObserver(forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil) { [weak self] _ in
                 self?.configurationChanged()
             }
@@ -185,6 +193,7 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
     private static let log = Logger(subsystem: "com.shelbyklein.Golem", category: "Conversation")
 
     static let pauseKey = "golemTalkPause"
+    static let echoCancellationKey = "golemTalkEchoCancellation"
     static let pauseRange = 0.5...3.0
     static let defaultPause = 1.0
     /// After a finished sentence (. ? !) the pause is cut to at most this.
@@ -419,6 +428,7 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
 
 /// The send pause, for Settings → Voice.
 struct GolemListenerSettings: View {
+    @AppStorage(GolemListener.echoCancellationKey) private var echoCancellation = false
     @AppStorage(GolemListener.pauseKey) private var stored = GolemListener.defaultPause
     private var pause: Binding<Double> {
         Binding(
@@ -432,6 +442,9 @@ struct GolemListenerSettings: View {
             Slider(value: pause, in: GolemListener.pauseRange, step: 0.1) { Text("Send after a pause of") }
                 .labelsHidden()
             Text("Sends sooner after a finished sentence.").font(.caption).foregroundStyle(.secondary)
+            Toggle("Speaker echo cancellation", isOn: $echoCancellation)
+            Text("Leave off for headphones. Changes apply when you start Conversation again.")
+                .font(.caption).foregroundStyle(.secondary)
         }
     }
 }
