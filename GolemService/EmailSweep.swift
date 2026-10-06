@@ -83,7 +83,7 @@ import Foundation
             struct Answer: Decodable { var status: String; var accountsChecked: [String]; var error: String; var emails: [Email] }
             guard let answer = try? JSONDecoder().decode(Answer.self, from: data) else {
                 let shape = (try? JSONSerialization.jsonObject(with: data)) == nil ? "not JSON" : "JSON without the expected fields"
-                return .failure("The sweep's answer couldn't be read (\(data.count) bytes, \(shape)).")
+                return .failure("The sweep's answer couldn't be read (\(data.count) bytes, \(shape), from \(codex)).")
             }
             guard answer.status == "ok", answer.error.isEmpty,
                   !answer.accountsChecked.isEmpty, answer.accountsChecked.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else {
@@ -120,6 +120,12 @@ enum EmailCatchUp {
     static func skipped(through: Date?, now: Date) -> Date? {
         guard let through, now.timeIntervalSince(through) > maximumBacklog else { return nil }
         return now.addingTimeInterval(-maximumBacklog)
+    }
+
+    /// A provider path that is a test fixture, not Codex.
+    static func looksLikeFixture(_ path: String) -> Bool {
+        let name = (path as NSString).lastPathComponent.lowercased()
+        return path.contains("/tests/") || name.hasSuffix(".py") || name.hasPrefix("fake")
     }
 
     static func shouldAlert(failingSince: Date?, failures: Int, alerted: Bool, now: Date) -> Bool {

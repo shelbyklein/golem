@@ -52,6 +52,8 @@ enum BinaryLocator { static var environment:[String:String] {ProcessInfo.process
     // The query is bounded on both sides.
     let prompt=EmailSweep.prompt(name:"Golem",since:behind.since,until:behind.until)
     precondition(prompt.contains("after:\(Int(behind.since.timeIntervalSince1970)) before:\(Int(behind.until.timeIntervalSince1970)) -in:sent -in:drafts"))
+    precondition(EmailCatchUp.looksLikeFixture("/Users/x/Vibes/Chatterbox/tests/golem-integration/fake-provider.py"))
+    precondition(EmailCatchUp.looksLikeFixture("/tmp/fake-codex") && !EmailCatchUp.looksLikeFixture("/Users/x/.local/bin/codex") && !EmailCatchUp.looksLikeFixture("/opt/homebrew/bin/codex"))
     print("catchup:ok")
 }
 Task { @MainActor in

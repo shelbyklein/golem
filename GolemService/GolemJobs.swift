@@ -113,6 +113,11 @@ import CryptoKit
             state.emailAttempt=now
             failed("Email watcher cannot start Codex. Check Golem’s app-specific codexPath for a missing executable.",now:now);return
         }
+        // A test fixture left in the real preferences once made every sweep "succeed" at nothing.
+        if !RuntimePaths.data.path.hasPrefix("/tmp/golem-"),EmailCatchUp.looksLikeFixture(codex) {
+            state.emailAttempt=now
+            failed("Email watcher is set to run a test provider instead of Codex (\(codex)). Remove codexPath from Golem’s preferences.",now:now);return
+        }
         if let skipped=EmailCatchUp.skipped(through:state.emailThrough,now:now),let through=state.emailThrough {
             journal(id:"email-skipped:\(Int(through.timeIntervalSince1970))",title:"Older email not swept",detail:"Email between \(through.formatted()) and \(skipped.formatted()) was older than a week when the watcher recovered and wasn’t checked.",kind:"activity",chat:nil)
         }
