@@ -2,11 +2,13 @@ import AppKit
 import AVFoundation
 import Speech
 import SwiftUI
+import OSLog
 
 /// Talking with Golem on the Mac: while he's open (the mini, or his chat window on screen), he
 /// reads each new reply aloud, then listens for yours and sends it once you pause. Saying
 /// nothing, typing, or putting him away ends the back-and-forth.
 @MainActor @Observable final class GolemTalk: NSObject {
+    private static let log = Logger(subsystem: "com.shelbyklein.Golem", category: "Conversation")
     static let shared = GolemTalk()
     static let readsKey = "golemTalkReads", listensKey = "golemTalkListens"
 
@@ -18,9 +20,12 @@ import SwiftUI
         get { access(keyPath: \.listens); return AppPreferences.defaults.object(forKey: Self.listensKey) as? Bool ?? true }
         set { withMutation(keyPath: \.listens) { AppPreferences.defaults.set(newValue, forKey: Self.listensKey) }; if !newValue { stopListening() } }
     }
+    private(set) var conversationActive = false { didSet { model?.dotMiniWindow?.conversationActive = conversationActive } }
+    private var captureGeneration = UUID()
+    private var startingListening = false
     private(set) var speaking = false
     private(set) var listening = false { didSet { model?.dotMiniWindow?.listening = listening } }
-    private(set) var problem: String?
+    private(set) var problem: String? { didSet { model?.dotMiniWindow?.voiceProblem = problem } }
     /// Which voice last read a reply, and when: "ElevenLabs" or "This Mac's voice".
     private(set) var lastSpoken: (engine: String, at: Date)?
 
@@ -35,7 +40,7 @@ import SwiftUI
     @ObservationIgnored private var player: AVAudioPlayer?
     @ObservationIgnored private var reading: Task<Void, Never>?
     @ObservationIgnored private var played: CheckedContinuation<Void, Never>?
-    @ObservationIgnored private let engine = AVAudioEngine()
+    @ObservationIgnored private var engine = AVAudioEngine()
     @ObservationIgnored private var request: SFSpeechAudioBufferRecognitionRequest?
     @ObservationIgnored private var recognition: SFSpeechRecognitionTask?
     @ObservationIgnored private let recognizer = SFSpeechRecognizer()
@@ -56,9 +61,36 @@ import SwiftUI
         self.model = model
         model.dotMiniWindow?.voice = MiniVoiceControls(muted: { [weak self] in self?.muted ?? false },
                                                          toggleMute: { [weak self] in self?.toggleMute() },
-                                                         toggleListening: { [weak self] in self?.toggleListening() })
+                                                         toggleListening: { [weak self] in self?.toggleListening() },
+                                                         stopConversation: { [weak self] in self?.stop() })
         lastReply = model.dot.flatMap(Self.latestReply)?.id
         follow()
+        Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                if let request = GolemConversationRequest.shared.pending, let self {
+                    if !request.start { self.stop(); GolemConversationRequest.shared.finish(request) }
+                    else if self.model?.dot != nil {
+                        if self.conversationActive { GolemConversationRequest.shared.finish(request) }
+                        else if let dot = self.model?.dot, dot.isRunning || !dot.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !dot.draftAttachments.isEmpty {
+                            GolemConversationRequest.shared.finish(request, error: "Wait for Golem to finish and send or clear your draft before starting Conversation.")
+                        } else {
+                            if !self.isOpen {
+                                self.model?.showingDot = true
+                                self.model?.dotMiniWindow?.setCollapsed(false)
+                            }
+                            NSApp.activate(ignoringOtherApps: true)
+                            if self.isOpen {
+                                GolemConversationRequest.shared.cancelPending = { [weak self] in self?.stop() }
+                                self.conversationActive = true
+                                await self.startListening(manual: true)
+                                GolemConversationRequest.shared.finish(request, error: self.listening ? nil : self.problem ?? "Listening did not start.")
+                            }
+                        }
+                    }
+                }
+                do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
+            }
+        }
     }
 
     private func follow() {
@@ -86,8 +118,10 @@ import SwiftUI
     private func replyChanged() {
         guard let dot = model?.dot, !dot.isRunning, let reply = Self.latestReply(dot), reply.id != lastReply else { return }
         lastReply = reply.id
-        guard reads, isOpen else { return }
+        guard reads || conversationActive, isOpen else { return }
+        let active = conversationActive
         stop()
+        conversationActive = active
         speak(reply.text)
     }
 
@@ -168,12 +202,14 @@ import SwiftUI
     }
 
     private func finishedSpeaking() {
+        Self.log.notice("Reply audio finished; conversation=\(self.conversationActive), open=\(self.isOpen)")
         speaking = false
-        guard listens, isOpen else { stopWatching(); return }
+        guard listens || conversationActive, isOpen else { stopWatching(); return }
+        let generation = captureGeneration
         Task { @MainActor in
             // A beat after his voice ends, so the microphone doesn't catch the tail of it.
             try? await Task.sleep(for: .milliseconds(300))
-            guard !speaking, isOpen else { return }
+            guard generation == captureGeneration, !speaking, isOpen else { return }
             await startListening()
         }
     }
@@ -188,36 +224,59 @@ import SwiftUI
 
     /// The listen button: talk now (he stops speaking), or stop listening.
     func toggleListening() {
-        if listening { stopListening(); return }
+        if conversationActive || startingListening || listening { stop(); return }
         if synthesizer.isSpeaking || player != nil { stop() }
+        conversationActive = true
         // Listening needs him open; from the minimized mini, open it so you see your words.
         if !isOpen, let mini = model?.dotMiniWindow, model?.showingDot == true { mini.setCollapsed(false) }
+        let generation = captureGeneration
         Task { @MainActor in
             for _ in 0..<20 where !isOpen { try? await Task.sleep(for: .milliseconds(50)) }
+            guard generation == captureGeneration, conversationActive else { return }
             await startListening(manual: true)
         }
     }
 
     /// Automatically only into an empty box; from the button, after whatever's typed.
     private func startListening(manual: Bool = false) async {
-        guard !listening, let dot = model?.dot else { return }
-        guard manual || (dot.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && dot.draftAttachments.isEmpty) else { return }
+        guard !listening, !startingListening, let dot = model?.dot else { return }
+        guard manual || (dot.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && dot.draftAttachments.isEmpty) else {
+            Self.log.notice("Listen-after-reply blocked by unsent draft")
+            problem = "Your unsent text is still in the box. Send or clear it, then start Conversation again."
+            conversationActive = false
+            return
+        }
         prefix = manual ? dot.draft.trimmingCharacters(in: .whitespacesAndNewlines) : ""
-        guard await Self.permitted() else {
+        startingListening = true
+        let generation = captureGeneration
+        defer { if generation == captureGeneration { startingListening = false } }
+        let permitted = await Self.permitted()
+        guard generation == captureGeneration else { return }
+        guard permitted else {
+            conversationActive = false
             problem = "Golem needs the microphone and speech recognition to hear you. Allow them in System Settings → Privacy & Security."
             return
         }
-        guard let recognizer, recognizer.isAvailable else { problem = "Speech recognition isn't available right now."; return }
+        guard let recognizer, recognizer.isAvailable else { conversationActive = false; problem = "Speech recognition isn't available right now."; return }
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         request.addsPunctuation = true
         if recognizer.supportsOnDeviceRecognition { request.requiresOnDeviceRecognition = true }
+        // A Bluetooth input can change sample rate when its microphone activates.
+        // Recreate the engine and let AVAudioEngine negotiate the tap format.
+        engine = AVAudioEngine()
         let input = engine.inputNode
-        input.removeTap(onBus: 0)
-        input.installTap(onBus: 0, bufferSize: 1024, format: input.outputFormat(forBus: 0)) { buffer, _ in request.append(buffer) }
+        let hardware = input.inputFormat(forBus: 0)
+        guard hardware.sampleRate > 0, hardware.channelCount > 0 else {
+            conversationActive = false
+            problem = "No microphone input is available. Choose an input in System Settings → Sound."
+            return
+        }
+        input.installTap(onBus: 0, bufferSize: 1024, format: nil) { buffer, _ in request.append(buffer) }
         engine.prepare()
         do { try engine.start() } catch {
             input.removeTap(onBus: 0)
+            conversationActive = false
             problem = "Couldn't start listening: \(error.localizedDescription)"
             return
         }
@@ -226,20 +285,30 @@ import SwiftUI
         heard = ""
         lastHeard = Date()
         listening = true
-        NSSound(named: "Tink")?.play()
+        Self.log.notice("Microphone started")
         recognition = recognizer.recognitionTask(with: request) { [weak self] result, error in
             let text = result?.bestTranscription.formattedString
             let done = error != nil || result?.isFinal == true
             Task { @MainActor in
-                guard let self, self.listening else { return }
+                guard let self, generation == self.captureGeneration, self.listening else { return }
                 if let text, text != self.heard {
                     // You typed in the box meanwhile: that's yours; stop without sending.
-                    if let dot = self.model?.dot, dot.draft != self.shown(self.heard) { self.stopListening(); return }
+                    if let dot = self.model?.dot, dot.draft != self.shown(self.heard) { self.stop(); return }
+                    Self.log.notice("Transcription updated: \(text.count) characters")
                     self.heard = text
                     self.lastHeard = Date()
                     self.model?.dot?.draft = self.shown(text)
                 }
-                if done { self.finishListening() }
+                if let error {
+                    let failure = error as NSError
+                    Self.log.error("Recognition failed: \(failure.domain, privacy: .public) code \(failure.code)")
+                    self.problem = failure.domain == "kLSRErrorDomain" && failure.code == 201
+                        ? "Dictation is disabled on this Mac. Turn on System Settings → Keyboard → Dictation, then try Conversation again."
+                        : "Listening stopped: \(error.localizedDescription). Try Conversation again."
+                    self.stop()
+                    return
+                }
+                if done { Self.log.info("Recognition finished"); self.finishListening() }
             }
         }
         watchWhileActive()
@@ -255,10 +324,16 @@ import SwiftUI
         if !words.isEmpty, dot?.draft == shown(heard) { dot?.draft = ""; dot?.draftAttachments = [] }
         stopListening()
         if !words.isEmpty, let dot { dot.send(text, attachments: attachments) }
+        else {
+            if conversationActive { problem = "No speech was recognized. Conversation paused; press Conversation to try again." }
+            conversationActive = false
+        }
     }
 
     /// Stops listening without sending. Anything heard stays in the box.
     func stopListening() {
+        captureGeneration = UUID()
+        startingListening = false
         guard listening || request != nil else { return }
         engine.stop()
         engine.inputNode.removeTap(onBus: 0)
@@ -271,6 +346,8 @@ import SwiftUI
     }
 
     func stop() {
+        Self.log.notice("Conversation stopped; open=\(self.isOpen), listening=\(self.listening)")
+        conversationActive = false
         reading?.cancel()
         reading = nil
         player?.stop()
@@ -287,10 +364,10 @@ import SwiftUI
         guard watcher == nil else { return }
         watcher = Task { @MainActor [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(250))
-                guard let self else { return }
+                do { try await Task.sleep(for: .milliseconds(250)) } catch { return }
+                guard let self, !Task.isCancelled else { return }
                 if !self.isOpen { self.stop(); return }
-                if self.listening, Date().timeIntervalSince(self.lastHeard) >= (self.heard.isEmpty ? Self.giveUp : Self.pause) {
+                if self.listening, Date().timeIntervalSince(self.lastHeard) >= (self.heard.isEmpty ? (self.conversationActive ? 30 : Self.giveUp) : Self.pause) {
                     self.finishListening()
                 }
                 if !self.speaking && !self.listening { self.watcher = nil; return }
@@ -352,7 +429,7 @@ enum ElevenLabs {
         request.setValue(key, forHTTPHeaderField: "xi-api-key")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("audio/mpeg", forHTTPHeaderField: "Accept")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["text": text, "model_id": "eleven_flash_v2_5"])
+        request.httpBody = try ElevenLabsSpeechSettings.payload(text: text, speed: ElevenLabsSpeechSettings.speed())
         let (data, response) = try await URLSession.shared.data(for: request)
         try check(response, data)
         return data
@@ -424,6 +501,7 @@ struct GolemTalkSettings: View {
             if talk.reads {
                 Toggle("Then listen for my reply", isOn: Binding(get: { talk.listens }, set: { talk.listens = $0 }))
             }
+            ElevenLabsSpeedControl()
             if hasKey {
                 if voices.isEmpty {
                     LabeledContent("ElevenLabs voice", value: voiceProblem == nil ? "Loading\u{2026}" : "Default voice")
@@ -463,14 +541,24 @@ struct GolemTalkSettings: View {
 
 /// Listen and mute in Golem's chat window toolbar.
 struct GolemVoiceToolbar: ToolbarContent {
+    @Environment(AppModel.self) private var model
     private var talk: GolemTalk { .shared }
     var body: some ToolbarContent {
         ToolbarItemGroup(placement: .primaryAction) {
+            if let session = model.dot {
+                RestartThreadControl(session: session, beforeRestart: { talk.stop() })
+            }
             Button { talk.toggleListening() } label: {
-                Label(talk.listening ? "Stop Listening" : "Listen", systemImage: talk.listening ? "mic.fill" : "mic")
+                Label(talk.conversationActive ? "End Conversation" : "Conversation", systemImage: talk.conversationActive ? "stop.fill" : "waveform")
             }
             .foregroundStyle(talk.listening ? Color.red : Color.primary)
-            .help(talk.listening ? "Stop listening" : "Talk to Golem: sends when you pause")
+            .help(talk.conversationActive ? "End conversation; keep unsent words" : "Start a conversation: speak, pause to send, and hear Golem reply")
+            if let problem = talk.problem {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                    .help(problem)
+                    .accessibilityLabel(problem)
+            }
             Button { talk.toggleMute() } label: {
                 Label(talk.muted ? "Unmute" : "Mute", systemImage: talk.muted ? "speaker.slash" : "speaker.wave.2")
             }

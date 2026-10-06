@@ -72,6 +72,7 @@ targets:
     - path: Core/Chatterbox/Engine/SlashCommands.swift
     - path: Core/Chatterbox/Engine/Tools.swift
     - path: Core/Chatterbox/Engine/ModelPresets.swift
+    - path: Core/Chatterbox/Engine/CodexModelCatalog.swift
     - path: Core/Chatterbox/Engine/GitHub.swift
     - path: Core/Chatterbox/Engine/GitHubIssues.swift
     - path: Core/Chatterbox/Engine/IssuePrompts.swift

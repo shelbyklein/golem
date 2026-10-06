@@ -6,8 +6,17 @@ import SwiftUI
     var body:some Scene {
         WindowGroup {
             Group {
+                #if DEBUG
+                if ProcessInfo.processInfo.environment["GOLEM_TEST_APPEARANCE"] == "1" {
+                    NavigationStack { Form { GolemAppearanceSettings() }.navigationTitle("Appearance") }
+                } else if ProcessInfo.processInfo.environment["GOLEM_TEST_VOICE_SETTINGS"] == "1" {
+                    NavigationStack { Form { GolemVoiceSettings() }.navigationTitle("Voice") }
+                } else if store.isPaired {GolemMobileRoot()}
+                else {ConnectView()}
+                #else
                 if store.isPaired {GolemMobileRoot()}
                 else {ConnectView()}
+                #endif
             }.environment(store).defaultAppStorage(AppPreferences.defaults).environment(\.readerStyle,.mobile)
             #if DEBUG
             .task {
@@ -47,12 +56,15 @@ struct GolemMobileRoot:View {
                 }
             }
         } else {
-        TabView {
-            GolemHome().tabItem{Label("Golem",systemImage:"sparkles")}
-            GolemJournalMobile().tabItem{Label("Journal",systemImage:"book")}
-            settingsView.tabItem{Label("Settings",systemImage:"gearshape")}
+        TabView(selection: $destination) {
+            GolemHome().tabItem{Label("Golem",systemImage:"sparkles")}.tag(Destination.golem as Destination?)
+            GolemJournalMobile().tabItem{Label("Journal",systemImage:"book")}.tag(Destination.journal as Destination?)
+            settingsView.tabItem{Label("Settings",systemImage:"gearshape")}.tag(Destination.settings as Destination?)
         }
         }
+        }
+        .onChange(of: GolemConversationRequest.shared.pending?.id, initial: true) { _, id in
+            if id != nil { destination = .golem }
         }
         .safeAreaInset(edge:.top){if let availability{Text(availability).font(.caption).frame(maxWidth:.infinity).padding(8).background(.thinMaterial)}}
         .task(id:scenePhase){
@@ -74,6 +86,7 @@ NavigationStack {
                     }
                     MobileNotificationControls()
                     GolemVoiceSettings()
+                    GolemAppearanceSettings()
                     Section("Automation on your Mac") {
                         ForEach(["dotCheckIns","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch"],id:\.self){key in
                             Toggle(policyLabel(key),isOn:Binding(get:{policies[key] ?? true},set:{value in policies[key]=value;control("settings",[key:value])}))
