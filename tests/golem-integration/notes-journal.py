@@ -11,7 +11,8 @@ def record(title, items, **extra):
     r = copy.deepcopy(shape)
     for k in ('claudeSessionID','claudeHost','codexHost','githubRepo','savedContext','projectFolder','projectNickname','dotFollowing','turnStartedAt'):
         if k in r: r[k] = None
-    r.update(id=str(uuid.uuid4()).upper(), title=title, items=items, tags=[], turnDates=[], backgroundTasks=[])
+    r.update(id=str(uuid.uuid4()).upper(), title=title, items=items, tags=[], turnDates=[], backgroundTasks=[],
+             updatedAt=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(time.time() - extra.pop('age', 0))))
     r.update(extra); return r
 item_shape = json.loads(Path(os.environ.get('ITEM_SHAPE','tests/golem-integration/notes/item-shape.json')).read_text())
 def item(kind, text):
@@ -21,13 +22,15 @@ studio_id = str(uuid.uuid4()).upper()
 project = record('Furnace project chat', [item('user', 'hi')], projectFolder=str(root/'Homelab'))
 studio = record('Studio chat', [item('user', 'hi')], studioID=studio_id)
 plain = record('Plain chat', [item('user', 'hi')])
+old = record('Old chat', [item('user', 'hi')], age=3*86400)
+project['items'].append(item('assistant', 'Furnace schedule updated.\nFilters next.'))
 job_text = '<app_note>\nChat %s finished. Read it with read_chat and summarize.\nYou may suggest answers but never submit user answers or approve requests.\n</app_note>' % project['id']
 golem = record('Golem', [
     item('user', job_text), item('assistant', 'The furnace work finished; filters are due.\nNoted: buy furnace filters'),
     item('user', 'note: dentist'), item('assistant', 'Got it.\n- **Noted:** call the dentist Thursday'),
     item('user', 'delete the filters note'), item('assistant', 'Deleted note: buy furnace filters'),
 ], isDot=True)
-for r in (project, studio, plain, golem): (convs/(r['id']+'.json')).write_text(json.dumps(r))
+for r in (project, studio, plain, old, golem): (convs/(r['id']+'.json')).write_text(json.dumps(r))
 key = hashlib.sha256(job_text.strip().encode()).hexdigest()[:24]
 (folder/'service-state.json').write_text(json.dumps(dict(schema=1, paused=False, jobs=[], seen=[], jobChats={key: project['id']})))
 (folder/'service-preferences.plist').write_bytes(plistlib.dumps(dict(dotEmailWatch=False, dotCheckIns=False, dotWatchWaiting=False, dotSummarizeFinished=False)))
@@ -62,6 +65,11 @@ try:
     own = next(e for e in replies if 'Got it.' in (e.get('detail') or ''))
     assert own['group'] == 'golem', own
     print('PASS a briefing is filed under the project its automatic turn was about; his own conversation under Golem')
+    activity = (folder/'activity.md').read_text()
+    assert '· Project Homelab · Furnace project chat [%s] · idle' % project['id'] in activity, activity
+    assert 'Last: Furnace schedule updated. Filters next.' in activity and '· Studio Archery Studio · Studio chat' in activity, activity
+    assert 'Old chat' not in activity and 'Golem [' not in activity, activity
+    print('PASS activity.md lists recent chats with time, home, status and latest reply; skips old chats and Golem')
     service.terminate(); service.wait(timeout=8)
     before = len(journal()); service = launch('build/runtime/golemd', 'restart')
     time.sleep(3)

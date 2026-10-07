@@ -230,6 +230,7 @@ import CryptoKit
                 let chats=try await client.request("list").decode([RuntimeChatState].self)
                 let studios=(try? await client.request("getStudios").decode([Studio].self)) ?? []
                 places=Self.places(chats:chats,studios:studios)
+                writeActivity(chats)
                 let d=AppPreferences.defaults
                 for chat in chats where chat.record.isDot != true {
                     if d.object(forKey:"dotWatchWaiting") as? Bool ?? true {
@@ -325,6 +326,41 @@ import CryptoKit
     }
     private static func textKey(_ text:String)->String {
         SHA256.hash(data:Data(text.trimmingCharacters(in:.whitespacesAndNewlines).utf8)).prefix(12).map{String(format:"%02x",$0)}.joined()
+    }
+
+    // MARK: - Recent activity, for catch-ups
+
+    private var lastActivity=""
+    /// ~/Chatterbox/Dot/activity.md: chats by when they last changed, so Golem can answer
+    /// "catch me up on the last hour" (his chat list has no times). Rewritten only when it changes.
+    private func writeActivity(_ chats:[RuntimeChatState]){
+        let text=Self.activity(chats:chats,places:places,now:Date())
+        guard text != lastActivity else{return}
+        if (try? Data(text.utf8).write(to:folder.appendingPathComponent("activity.md"),options:.atomic)) != nil{lastActivity=text}
+    }
+    static func activity(chats:[RuntimeChatState],places:[UUID:Context],now:Date)->String {
+        let stamp=DateFormatter();stamp.locale=Locale(identifier:"en_US_POSIX");stamp.dateFormat="MMM d, h:mm a"
+        let recent=chats.filter{$0.record.isDot != true && now.timeIntervalSince($0.record.updatedAt)<48*3600}
+            .sorted{$0.record.updatedAt>$1.record.updatedAt}.prefix(60)
+        var lines=["# Recent activity","","Chats by when they last changed, newest first, from the last 48 hours. Kept by golemd; local times.",""]
+        if recent.isEmpty{lines.append("No chat changed in the last 48 hours.")}
+        for chat in recent {
+            let r=chat.record;let place=places[r.id] ?? Context(chat:r.id)
+            let home=switch place.group {
+            case "project":"Project \(place.groupName ?? "")"
+            case "studio":"Studio \(place.groupName ?? "")"
+            default:"Chat"
+            }
+            let waiting=(chat.pendingItems ?? r.items).contains{$0.approvalState == .pending}
+            let status=waiting ? "waiting on the user" : (chat.running ? "working" : "idle")
+            lines.append("- \(stamp.string(from:r.updatedAt)) · \(home) · \(r.title) [\(r.id.uuidString)] · \(status)")
+            // The latest finished reply only, so a reply still streaming doesn't rewrite the file.
+            if let last=r.items.last(where:{$0.kind == .assistant && $0.phase == .final && !$0.text.isEmpty}) {
+                let flat=last.text.split(whereSeparator:\.isNewline).joined(separator:" ")
+                lines.append("  Last: "+(flat.count>220 ? String(flat.prefix(220))+"…" : flat))
+            }
+        }
+        return lines.joined(separator:"\n")+"\n"
     }
 
     // MARK: - Notes

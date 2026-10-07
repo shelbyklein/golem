@@ -87,6 +87,9 @@ NavigationStack {
                         Button("Disconnect Golem",role:.destructive){store.forget()}
                     }
                     MobileNotificationControls()
+                    Section {
+                        NavigationLink("Quick Prompts"){GolemQuickPromptsEditor()}
+                    } footer: {Text("Buttons above Golem’s message box that send a prepared message, like “Catch me up”.")}
                     GolemVoiceSettings()
                     GolemAppearanceSettings()
                     Section("Automation on your Mac") {
@@ -267,5 +270,61 @@ struct GolemNotesMobile:View {
             if pending.isEmpty{sent=nil}
             problem=nil
         }catch{problem=error.localizedDescription}
+    }
+}
+
+/// Settings → Quick Prompts: the buttons above Golem's message box.
+struct GolemQuickPromptsEditor:View {
+    @AppStorage(GolemQuickPrompts.key) private var data=Data()
+    private var prompts:[GolemQuickPrompt]{GolemQuickPrompts.decode(data)}
+    private func update(_ change:(inout [GolemQuickPrompt])->Void){var list=prompts;change(&list);data=GolemQuickPrompts.encode(list)}
+    var body:some View {
+        List {
+            Section {
+                ForEach(prompts){prompt in
+                    NavigationLink{GolemQuickPromptForm(prompt:prompt){edited in update{list in
+                        if let i=list.firstIndex(where:{$0.id==edited.id}){list[i]=edited}}}
+                    } label:{
+                        VStack(alignment:.leading,spacing:2){
+                            Text(prompt.label)
+                            Text(prompt.text).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        }
+                    }
+                }
+                .onDelete{offsets in update{$0.remove(atOffsets:offsets)}}
+                .onMove{from,to in update{$0.move(fromOffsets:from,toOffset:to)}}
+                NavigationLink{GolemQuickPromptForm(prompt:GolemQuickPrompt(label:"",text:"")){added in
+                    update{$0.append(added)}}
+                } label:{Label("Add Prompt",systemImage:"plus")}
+            } footer: {
+                Text("Tapping a prompt sends it to Golem right away. In the text, {since} becomes the time an hour ago and {now} the time now.")
+            }
+            Section{Button("Restore Defaults"){data=GolemQuickPrompts.encode(GolemQuickPrompts.defaults)}}
+        }
+        .navigationTitle("Quick Prompts")
+        .toolbar{EditButton()}
+    }
+}
+
+struct GolemQuickPromptForm:View {
+    @State var prompt:GolemQuickPrompt
+    let save:(GolemQuickPrompt)->Void
+    @Environment(\.dismiss) private var dismiss
+    private var valid:Bool{!prompt.label.trimmingCharacters(in:.whitespaces).isEmpty && !prompt.text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty}
+    var body:some View {
+        Form {
+            Section("Button"){TextField("Catch me up",text:$prompt.label)}
+            Section {
+                TextField("What Golem receives",text:$prompt.text,axis:.vertical).lineLimit(3...10)
+            } header:{Text("Message")} footer:{
+                Text("Sends as: \(GolemQuickPrompts.expand(prompt.text))").font(.caption)
+            }
+        }
+        .navigationTitle(prompt.label.isEmpty ? "New Prompt" : prompt.label)
+        .toolbar{ToolbarItem(placement:.confirmationAction){Button("Save"){
+            prompt.label=prompt.label.trimmingCharacters(in:.whitespaces)
+            prompt.text=prompt.text.trimmingCharacters(in:.whitespacesAndNewlines)
+            save(prompt);dismiss()
+        }.disabled(!valid)}}
     }
 }
