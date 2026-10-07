@@ -3,6 +3,7 @@ import SwiftUI
 @main struct GolemMobileApp:App {
     @UIApplicationDelegateAdaptor(MobilePushAppDelegate.self) private var delegate
     @State private var store=MobileStore()
+    @Environment(\.scenePhase) private var scenePhase
     var body:some Scene {
         WindowGroup {
             Group {
@@ -18,6 +19,8 @@ import SwiftUI
                 else {ConnectView()}
                 #endif
             }.environment(store).defaultAppStorage(AppPreferences.defaults).environment(\.readerStyle,.mobile)
+            // While Golem is open on screen the iPhone doesn't auto-lock; iOS restores it when he isn't.
+            .onChange(of:scenePhase,initial:true){_,phase in UIApplication.shared.isIdleTimerDisabled = phase == .active}
             #if DEBUG
             .task {
                 let env=ProcessInfo.processInfo.environment

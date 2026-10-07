@@ -178,6 +178,7 @@
 		B0CC8DF709B75CD6673BF80D /* ChatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 979A83850256B58F4855922F /* ChatDetailView.swift */; };
 		B1A5520B3BB5A2B062545AA9 /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6381F60DE38955487DB74226 /* Secrets.swift */; };
 		B5F13D5CE635A5F359519E71 /* WindowToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45509284B15245D1C18FC675 /* WindowToolbar.swift */; };
+		B61241D89CB2F50A1F35292B /* MobileNewReplies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893C99C64EA63F370035B3D2 /* MobileNewReplies.swift */; };
 		B62DE5736DC7A52C4B2AE009 /* PinsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F17D1A4655DC36CABCEE63E /* PinsSection.swift */; };
 		B6C9B62FEFBDA1AA301060E2 /* DotActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15321162B37789D733F189C8 /* DotActivity.swift */; };
 		B7EB744E08EA18D54CA62D2E /* CodexAppServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 338C9EFA057975DC1614D90D /* CodexAppServer.swift */; };
@@ -389,6 +390,7 @@
 		8609433DFC535CD0D1055CE6 /* SketchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SketchView.swift; sourceTree = "<group>"; };
 		885D06BA0221CF36680E5CFA /* AssistantConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantConfiguration.swift; sourceTree = "<group>"; };
 		888327FEAF92133119A3815F /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		893C99C64EA63F370035B3D2 /* MobileNewReplies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileNewReplies.swift; sourceTree = "<group>"; };
 		8978319EDD52B8CDD34C924A /* ChatSession+Host.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Host.swift"; sourceTree = "<group>"; };
 		8AA0EDE4AD16E5F4F909076C /* DotMemorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotMemorySheet.swift; sourceTree = "<group>"; };
 		8BB2050E903C47213A5D35C0 /* GolemJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemJournal.swift; sourceTree = "<group>"; };
@@ -660,6 +662,7 @@
 				950561E8117AEE18BD699B2F /* MobileHome.swift */,
 				270568B40AFD3896767E1C41 /* MobileHTMLPreview.swift */,
 				63E139C9A5CC5B2DFEF17A4B /* MobileMedia.swift */,
+				893C99C64EA63F370035B3D2 /* MobileNewReplies.swift */,
 				CB5F8BC5213766E2A9BDB6F4 /* MobilePDFCache.swift */,
 				56AE3286E702C4341F9B14A7 /* MobilePDFViewer.swift */,
 				A51DFE09E690C3416D4AFA29 /* MobilePushNotifications.swift */,
@@ -1137,6 +1140,7 @@
 				D89C8D3C64D429305DA3ACD7 /* MobileHTMLPreview.swift in Sources */,
 				9A8D5659E35738951BA18EF7 /* MobileHome.swift in Sources */,
 				BDECF54652E2873D051CDB84 /* MobileMedia.swift in Sources */,
+				B61241D89CB2F50A1F35292B /* MobileNewReplies.swift in Sources */,
 				73D3132A4FF5A7D57A2B8C6E /* MobilePDFCache.swift in Sources */,
 				82798794F1A7A982CA71206F /* MobilePDFViewer.swift in Sources */,
 				840BB1D1F0AFDAA95B3CEC22 /* MobilePushNotifications.swift in Sources */,
