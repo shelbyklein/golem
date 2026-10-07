@@ -5,13 +5,22 @@ import CryptoKit
 /// Durable trigger identities and command receipts survive UI and service restarts.
 /// Only this process writes assistant policy state and journal.json.
 @MainActor final class GolemJobs {
-    struct Job:Codable {var id:String;var label:String;var text:String;var submitted=false}
+    struct Job:Codable {var id:String;var label:String;var text:String;var submitted=false;var chat:UUID?=nil}
+    /// A note Golem confirmed with a "Noted:" line.
+    struct Note:Codable,Equatable {var id:UUID;var date:Date;var text:String}
     struct State:Codable {var schema=1;var jobs:[Job]=[];var seen:Set<String>=[];var problem:String?;var paused=false;var emailAttempt:Date?;var emailThrough:Date?;var emailProblem:String?;var emailAccounts:[String]?;var controls:[String:CommandReceipt]?=[:]
         /// Consecutive failed sweeps, since when, and whether the user has been told.
         var emailFailures:Int?;var emailFailingSince:Date?;var emailAlerted:Bool?
         /// Important mail found while catching up, briefed once when the watcher reaches the present.
-        var emailBacklog:[EmailSweep.Email]?;var emailBacklogSince:Date?}
-    struct Entry:Codable {var id:UUID;var date:Date;var kind:String;var title:String;var detail:String?;var chat:UUID?;var chatName:String?}
+        var emailBacklog:[EmailSweep.Email]?;var emailBacklogSince:Date?
+        /// Which chat each automatic turn was about (keyed by a hash of its text), so his reply can be filed under it.
+        var jobChats:[String:UUID]?
+        var notes:[Note]?}
+    /// `group` files an entry the way Chatterbox's pages do: "project", "studio", "chat", or "golem" (his own work);
+    /// `groupName` is the project or studio, `chatName` the chat.
+    struct Entry:Codable {var id:UUID;var date:Date;var kind:String;var title:String;var detail:String?;var chat:UUID?;var chatName:String?;var group:String?=nil;var groupName:String?=nil}
+    /// Where a chat lives, for filing journal entries.
+    struct Context {var chat:UUID?=nil;var chatName:String?=nil;var group="golem";var groupName:String?=nil}
     private(set) var state:State
     private(set) var entries:[Entry]
     private let folder:URL
@@ -187,13 +196,20 @@ import CryptoKit
         journal(id:"email-failing:\(Int(since.timeIntervalSince1970))",title:"Email watching is failing",detail:text,kind:"activity",chat:nil)
         Task {_ = try? await client.request("notify",body:["title":"Golem","text":.string(text)],id:"notification-email-failing-\(Int(since.timeIntervalSince1970))")}
     }
-    func enqueue(id:String,label:String,text:String){
+    func enqueue(id:String,label:String,text:String,chat:UUID?=nil){
         guard !state.seen.contains(id),!state.jobs.contains(where:{$0.id==id}) else{return}
         guard state.jobs.count<1000,state.seen.count<100_000 else {
             state.problem="Golem’s durable job storage is full. Automation is paused; review the service state before resuming."
             state.paused=true;save();return
         }
-        state.jobs.append(Job(id:id,label:label,text:"<app_note>\n\(text)\nYou may suggest answers but never submit user answers or approve requests.\n</app_note>"))
+        let wrapped="<app_note>\n\(text)\nYou may suggest answers but never submit user answers or approve requests.\n</app_note>"
+        state.jobs.append(Job(id:id,label:label,text:wrapped,chat:chat))
+        if let chat {
+            var map=state.jobChats ?? [:]
+            map[Self.textKey(wrapped)]=chat
+            if map.count>300{map=[:].merging(map.suffix(200)){$1}}
+            state.jobChats=map
+        }
         save()
     }
     private func refresh(_ event:RuntimeEvent){
@@ -212,11 +228,14 @@ import CryptoKit
                 integrationEnabled=health["integrationEnabled"]?.bool ?? false
                 guard integrationEnabled,!state.paused else{return}
                 let chats=try await client.request("list").decode([RuntimeChatState].self)
+                let studios=(try? await client.request("getStudios").decode([Studio].self)) ?? []
+                places=Self.places(chats:chats,studios:studios)
+                writeActivity(chats)
                 let d=AppPreferences.defaults
                 for chat in chats where chat.record.isDot != true {
                     if d.object(forKey:"dotWatchWaiting") as? Bool ?? true {
                         for item in chat.pendingItems ?? chat.record.items where item.approvalState == .pending {
-                            enqueue(id:"waiting:\(item.id)",label:"\(chat.record.title) is waiting on you",text:"Chat \(chat.record.id) is waiting on the user: \(item.text). Read it with read_chat and briefly explain what it needs from the user. Suggest an answer only when confident and the decision is not personal or about money, access, deletion or publishing.")
+                            enqueue(id:"waiting:\(item.id)",label:"\(chat.record.title) is waiting on you",text:"Chat \(chat.record.id) is waiting on the user: \(item.text). Read it with read_chat and briefly explain what it needs from the user. Suggest an answer only when confident and the decision is not personal or about money, access, deletion or publishing.",chat:chat.record.id)
                         }
                     }
                     if !chat.running,(event.kind=="runtime.resync" || (event.chatID==chat.record.id && event.kind=="turn.finished")),d.object(forKey:"dotSummarizeFinished") as? Bool ?? true {
@@ -224,7 +243,7 @@ import CryptoKit
                         let turn=chat.record.items.dropFirst(last)
                         if chat.record.dotFollowing==true || turn.contains(where:{$0.kind == .tool || ($0.workedSeconds ?? 0)>=60}) {
                             if let reply=turn.last(where:{$0.kind == .assistant && $0.phase == .final}),Date().timeIntervalSince(chat.record.updatedAt)<86400 {
-                                enqueue(id:"finished:\(chat.record.id):\(reply.id)",label:"\(chat.record.title) finished",text:"Chat \(chat.record.id) finished. Read it with read_chat and summarize the result, what changed and anything the user needs to do or decide next.")
+                                enqueue(id:"finished:\(chat.record.id):\(reply.id)",label:"\(chat.record.title) finished",text:"Chat \(chat.record.id) finished. Read it with read_chat and summarize the result, what changed and anything the user needs to do or decide next.",chat:chat.record.id)
                             }
                         }
                     }
@@ -232,15 +251,21 @@ import CryptoKit
                 let notes=try await client.request("assistantNotes").decode([JSON].self)
                 for note in notes {
                     guard let id=note["id"]?.string else{continue}
-                    if !state.seen.contains(id){journal(id:id,title:note["title"]?.string ?? "Decision",detail:note["detail"]?.string,kind:"decision",chat:note["chatID"]?.string.flatMap(UUID.init(uuidString:)))}
+                    if !state.seen.contains(id){journal(id:id,title:note["title"]?.string ?? "Decision",detail:note["detail"]?.string,kind:"decision",chat:note["chatID"]?.string.flatMap(UUID.init(uuidString:)),context:context(note["chatID"]?.string.flatMap(UUID.init(uuidString:))))}
                 }
                 if persistenceHealthy,!notes.isEmpty {_ = try await client.request("ackAssistantNotes",body:["ids":try .value(notes.compactMap{$0["id"]?.string})])}
                 if let assistant=chats.first(where:{$0.record.isDot==true}),!assistant.running {
-                    for item in assistant.record.items where item.kind == .assistant && item.phase == .final && !item.text.isEmpty {
-                        if item.text != "NO_REPORT",!state.seen.contains("reply:\(item.id)"){
+                    let items=assistant.record.items
+                    for (index,item) in items.enumerated() where item.kind == .assistant && item.phase == .final && !item.text.isEmpty {
+                        let fresh = !state.seen.contains("reply:\(item.id)")
+                        if item.text != "NO_REPORT",fresh {
                             _ = try await client.request("notify",body:["title":"Golem","text":.string(item.text),"itemID":.string(item.id.uuidString)],id:"notification-\(item.id)")
                         }
-                        journal(id:"reply:\(item.id)",title:item.text=="NO_REPORT" ? "Nothing needs you":"Briefing",detail:item.text,kind:"activity",chat:assistant.record.id)
+                        // File the reply under the chat its automatic turn was about.
+                        let prompt=items[..<index].last(where:{$0.kind == .user})?.text
+                        let about=prompt.flatMap{state.jobChats?[Self.textKey($0)]}
+                        if fresh { captureNotes(from:item.text,reply:item.id) }
+                        journal(id:"reply:\(item.id)",title:item.text=="NO_REPORT" ? "Nothing needs you":"Briefing",detail:item.text,kind:"activity",chat:about ?? assistant.record.id,context:context(about))
                     }
                 }
                 tick();drain()
@@ -257,19 +282,111 @@ import CryptoKit
                 guard chats.first(where:{$0.record.isDot==true})?.running != true else{return}
                 _ = try await client.request("sendAutomatic",body:["label":.string(job.label),"text":.string(job.text)],id:stableUUID("job:\(job.id)").uuidString)
                 if let i=state.jobs.firstIndex(where:{$0.id==job.id}){state.jobs[i].submitted=true}
-                journal(id:job.id,title:job.label,detail:nil,kind:"activity",chat:nil)
+                journal(id:job.id,title:job.label,detail:nil,kind:"activity",chat:job.chat,context:context(job.chat))
                 // A failing email watcher stays visible until a sweep succeeds.
                 state.jobs.removeAll{$0.submitted};if state.problem != state.emailProblem{state.problem=nil};save()
             }catch{state.problem=error.localizedDescription;save()}
         }
     }
-    private func journal(id:String,title:String,detail:String?,kind:String,chat:UUID?){
+    private func journal(id:String,title:String,detail:String?,kind:String,chat:UUID?,context:Context=Context()){
         guard !state.seen.contains(id) else{return}
         // Journal entry UUID is deterministically recovered from the persisted identity list.
         // Save journal before state; a retry checks its entry identity to avoid duplication.
         let uuid=UUID(uuidString:id.replacingOccurrences(of:"reply:",with:"")) ?? stableUUID(id)
-        if !entries.contains(where:{$0.id==uuid}){entries.append(Entry(id:uuid,date:Date(),kind:kind,title:title,detail:detail,chat:chat,chatName:nil))}
-        entries=Array(entries.suffix(400));state.seen.insert(id);save()
+        if !entries.contains(where:{$0.id==uuid}){entries.append(Entry(id:uuid,date:Date(),kind:kind,title:title,detail:detail,chat:chat,chatName:context.chatName,group:context.group,groupName:context.groupName))}
+        // The newest 400 entries, plus every note record, so the notebook never falls off the end.
+        let keep=Set(entries.filter{!Self.noteKinds.contains($0.kind)}.suffix(400).map(\.id))
+        entries=entries.filter{Self.noteKinds.contains($0.kind) || keep.contains($0.id)}
+        state.seen.insert(id);save()
+    }
+
+    // MARK: - Filing by project, studio or chat
+
+    /// Chat id → where it lives, refreshed with each chat list.
+    private var places:[UUID:Context]=[:]
+    private func context(_ chat:UUID?)->Context {
+        guard let chat else{return Context()}
+        return places[chat] ?? Context(chat:chat)
+    }
+    static func places(chats:[RuntimeChatState],studios:[Studio])->[UUID:Context] {
+        let studioNames=Dictionary(studios.map{($0.id,$0.name)},uniquingKeysWith:{a,_ in a})
+        var result:[UUID:Context]=[:]
+        for chat in chats {
+            let r=chat.record
+            if r.isDot==true{result[r.id]=Context(chat:r.id,chatName:r.title,group:"golem");continue}
+            if let studio=r.studioID{result[r.id]=Context(chat:r.id,chatName:r.title,group:"studio",groupName:studioNames[studio] ?? "Studio");continue}
+            if let folder=r.sidechatProjectFolder ?? r.worktreeOf ?? r.projectFolder {
+                let nickname=r.projectNickname ?? ""
+                let name=nickname.isEmpty ? (folder as NSString).lastPathComponent : nickname
+                result[r.id]=Context(chat:r.id,chatName:r.title,group:"project",groupName:name);continue
+            }
+            result[r.id]=Context(chat:r.id,chatName:r.title,group:"chat")
+        }
+        return result
+    }
+    private static func textKey(_ text:String)->String {
+        SHA256.hash(data:Data(text.trimmingCharacters(in:.whitespacesAndNewlines).utf8)).prefix(12).map{String(format:"%02x",$0)}.joined()
+    }
+
+    // MARK: - Recent activity, for catch-ups
+
+    private var lastActivity=""
+    /// ~/Chatterbox/Dot/activity.md: chats by when they last changed, so Golem can answer
+    /// "catch me up on the last hour" (his chat list has no times). Rewritten only when it changes.
+    private func writeActivity(_ chats:[RuntimeChatState]){
+        let text=Self.activity(chats:chats,places:places,now:Date())
+        guard text != lastActivity else{return}
+        if (try? Data(text.utf8).write(to:folder.appendingPathComponent("activity.md"),options:.atomic)) != nil{lastActivity=text}
+    }
+    static func activity(chats:[RuntimeChatState],places:[UUID:Context],now:Date)->String {
+        let stamp=DateFormatter();stamp.locale=Locale(identifier:"en_US_POSIX");stamp.dateFormat="MMM d, h:mm a"
+        let recent=chats.filter{$0.record.isDot != true && now.timeIntervalSince($0.record.updatedAt)<48*3600}
+            .sorted{$0.record.updatedAt>$1.record.updatedAt}.prefix(60)
+        var lines=["# Recent activity","","Chats by when they last changed, newest first, from the last 48 hours. Kept by golemd; local times.",""]
+        if recent.isEmpty{lines.append("No chat changed in the last 48 hours.")}
+        for chat in recent {
+            let r=chat.record;let place=places[r.id] ?? Context(chat:r.id)
+            let home=switch place.group {
+            case "project":"Project \(place.groupName ?? "")"
+            case "studio":"Studio \(place.groupName ?? "")"
+            default:"Chat"
+            }
+            let waiting=(chat.pendingItems ?? r.items).contains{$0.approvalState == .pending}
+            let status=waiting ? "waiting on the user" : (chat.running ? "working" : "idle")
+            lines.append("- \(stamp.string(from:r.updatedAt)) · \(home) · \(r.title) [\(r.id.uuidString)] · \(status)")
+            // The latest finished reply only, so a reply still streaming doesn't rewrite the file.
+            if let last=r.items.last(where:{$0.kind == .assistant && $0.phase == .final && !$0.text.isEmpty}) {
+                let flat=last.text.split(whereSeparator:\.isNewline).joined(separator:" ")
+                lines.append("  Last: "+(flat.count>220 ? String(flat.prefix(220))+"…" : flat))
+            }
+        }
+        return lines.joined(separator:"\n")+"\n"
+    }
+
+    // MARK: - Notes
+
+    static let noteKinds:Set<String>=["note","note-deleted"]
+    /// Golem confirms a note with a line starting "Noted:", and a deletion with "Deleted note:".
+    /// Those lines are the record: the notebook is kept here, in notes.md for him to read back,
+    /// and in the journal for the phone.
+    private func captureNotes(from text:String,reply:UUID){
+        let found=GolemNotes.parse(text)
+        guard !found.added.isEmpty || !found.deleted.isEmpty else{return}
+        var notes=state.notes ?? []
+        for (n,added) in found.added.enumerated() where !notes.contains(where:{GolemNotes.same($0.text,added)}) {
+            let note=Note(id:stableUUID("note:\(reply):\(n)"),date:Date(),text:added)
+            notes.append(note)
+            journal(id:"note:\(note.id)",title:"Note",detail:added,kind:"note",chat:nil)
+        }
+        for (n,deleted) in found.deleted.enumerated() {
+            guard let index=notes.firstIndex(where:{GolemNotes.same($0.text,deleted)}) ?? notes.firstIndex(where:{GolemNotes.matches($0.text,deleted)}) else{continue}
+            let removed=notes.remove(at:index)
+            journal(id:"note-deleted:\(reply):\(n)",title:"Note deleted",detail:removed.text,kind:"note-deleted",chat:nil)
+        }
+        state.notes=notes;save()
+        let lines:[String]=notes.reversed().map{"- \($0.date.formatted(date:.abbreviated,time:.shortened)): \($0.text)"}
+        let markdown:String="# Notes\n\nGolem's notebook, newest first. Kept by golemd from your \"Noted:\" and \"Deleted note:\" lines; edits here are overwritten.\n\n"+lines.joined(separator:"\n")+"\n"
+        try? Data(markdown.utf8).write(to:folder.appendingPathComponent("notes.md"),options:.atomic)
     }
     private func stableUUID(_ text:String)->UUID {
         let digest=SHA256.hash(data:Data(text.utf8));let bytes=Array(digest.prefix(16))

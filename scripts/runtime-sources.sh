@@ -5,5 +5,5 @@ for name in Models ChatSession ChatSession+Claude ChatSession+Codex ChatSession+
   printf '%s\n' "Chatterbox/Engine/$name.swift"
 done
 printf '%s\n' Chatterbox/Support/JSON.swift Chatterbox/Support/HostProtocol.swift Chatterbox/Support/Attachments.swift
-printf '%s\n' Shared/AppPreferences.swift Shared/Backend.swift Shared/MediaKind.swift Shared/FilePaths.swift
+printf '%s\n' Shared/AppPreferences.swift Shared/Backend.swift Shared/MediaKind.swift Shared/FilePaths.swift Shared/CompanionAPI.swift
 find -L ChatterboxRuntime -name '*.swift' ! -name 'RuntimeClient.swift'
