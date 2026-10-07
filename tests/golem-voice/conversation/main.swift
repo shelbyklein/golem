@@ -3,8 +3,8 @@ import AppKit
 import SwiftUI
 
 // End to end: a conversation with a fake microphone and a silent Mac voice. Streaming reply →
-// speech starts before the turn ends → the ears are open → talking over him stops him → the
-// words send on a pause → the mic stays warm → the next reply is read → minimizing stops all.
+// speech starts before the turn ends → the ears are open → talking over him doesn't stop him or
+// send → your words send on a pause after he finishes → the mic stays warm → minimizing stops all.
 let app = NSApplication.shared
 app.setActivationPolicy(.accessory)
 setbuf(stdout, nil)
@@ -65,18 +65,21 @@ final class FakeSource: RecognitionSource, @unchecked Sendable {
     precondition(dot.isRunning && talk.listening && fake.starts == 1, "listening stopped when he started talking")
     print("PASS streaming reply is read before the turn ends, with the ears open")
 
-    // Barge-in: a word while he talks stops him; the utterance still sends.
+    // Talking over him doesn't stop him (only stop and mute do): the words are ignored, never
+    // typed or sent, since they may be his own voice. Your turn starts once he's done.
     fake.emit(.partial("Stop")); await settle(100)
-    precondition(!talk.speaking, "talking over him didn't stop him")
+    precondition(talk.speaking, "talking over him stopped him")
+    precondition(dot.draft.isEmpty, "words heard while he talked reached the box: \(dot.draft)")
     dot.updateItem(reply) { $0.text += "And a second one that keeps streaming. "; $0.phase = .final }
     dot.isRunning = false
-    await settle(300)
-    precondition(!talk.speaking, "a stopped reply resumed after barge-in")
-    precondition(model.dotMiniWindow?.hiddenSpokenReply != reply, "interrupted audio hid unread text")
-    fake.emit(.partial("Stop, I mean it.")); await settle(50)
-    await waitUntil("the barge-in words to send", 1500) { sent.count == 2 }
-    precondition(sent[1] == "Stop, I mean it." && talk.listener.engineRunning && fake.starts == 1)
-    print("PASS barge-in stops playback; the words send; mic stays warm")
+    await waitUntil("him to finish the whole reply", 10000) { !talk.speaking }
+    precondition(sent.count == 1, "words heard while he talked were sent: \(sent)")
+    precondition(model.dotMiniWindow?.hiddenSpokenReply == reply, "a fully spoken reply kept its bubble")
+    await waitUntil("listening after he finished") { talk.listening }
+    fake.emit(.partial("Now my turn.")); await settle(50)
+    await waitUntil("your words after his reply to send", 1500) { sent.count == 2 }
+    precondition(sent[1] == "Now my turn." && talk.listener.engineRunning && fake.starts == 1)
+    print("PASS speech while he talks doesn't stop him or send; your turn starts when he finishes")
 
     // Nothing said while he talks is fine: the next reply is read to the end, then listening resumes.
     dot.isRunning = true
