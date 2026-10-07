@@ -4,7 +4,9 @@ import SwiftUI
 
 /// Talking with Golem on the Mac: while he's open (the mini, or his chat window on screen), he
 /// reads each reply aloud as it arrives, listens the whole time, and sends what you say once you
-/// pause. Talking over him interrupts him. Staying quiet, typing, or putting him away ends it.
+/// pause. He always finishes speaking unless you press stop or mute: what the microphone hears
+/// while he talks is ignored (it may be his own voice). Staying quiet, typing, or putting him
+/// away ends it.
 ///
 /// The voice is `GolemSpeaker`, the ears `GolemListener`; this ties them to his conversation.
 @MainActor @Observable final class GolemTalk: NSObject {
@@ -148,7 +150,7 @@ import SwiftUI
         speaker.update(reply: reply.id, text: reply.text, final: !dot.isRunning)
     }
 
-    /// The ears stay open while he talks, so you can interrupt him.
+    /// The microphone stays warm while he talks, so your turn starts the moment he's done.
     private func listenWhileSpeaking() {
         guard listens || conversationActive, !listener.listening, !startingListening, let dot = model?.dot,
               dot.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, dot.draftAttachments.isEmpty else { return }
@@ -161,14 +163,14 @@ import SwiftUI
             model?.dotMiniWindow?.hideSpokenReply(id)
         }
         guard listens || conversationActive, isOpen else { stopWatching(); return }
-        if !listener.listening { Task { @MainActor in await startListening() } }
+        // Your turn starts fresh: nothing heard while he talked carries over.
+        if listener.listening { listener.cancelUtterance(); heard = ""; listener.beginUtterance() }
+        else { Task { @MainActor in await startListening() } }
     }
 
-    /// Your first word while he's talking: he stops and lets you finish.
+    /// Speech while he's talking doesn't stop him; only the stop and mute buttons do.
     private func speechDetected() {
-        guard speaker.speaking else { return }
-        Self.log.notice("Barge-in: stopping playback")
-        speaker.stop()
+        if speaker.speaking { Self.log.notice("Speech while Golem speaks: ignored, playback continues") }
     }
 
     // MARK: - Buttons
@@ -222,7 +224,7 @@ import SwiftUI
     /// Your words land in the box after whatever was typed. If the box changed under us, you
     /// typed: that's yours, so stop without sending.
     private func transcribed(_ words: String) {
-        guard let dot = model?.dot else { return }
+        guard let dot = model?.dot, !speaker.speaking else { return }
         if dot.draft != shown(heard) { stop(); return }
         heard = words
         dot.draft = shown(words)
@@ -230,6 +232,8 @@ import SwiftUI
 
     /// You paused (or said nothing): send what was heard, if anything, and keep listening.
     private func finishListening(_ words: String) {
+        // Heard while he was talking: not yours to send (and possibly his own voice).
+        if speaker.speaking, isOpen { heard = ""; listener.beginUtterance(); return }
         let text = shown(words).trimmingCharacters(in: .whitespacesAndNewlines)
         let dot = model?.dot
         let attachments = dot?.draftAttachments ?? []

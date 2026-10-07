@@ -35,7 +35,7 @@ struct GolemTalkSettings: View {
         } header: {
             Text("Voice")
         } footer: {
-            Text((hasKey ? "Replies are spoken with ElevenLabs using your ELEVENLABS key from Chatterbox's Secrets: their text goes to ElevenLabs and uses your credits. " : "") + "Open means the mini isn't minimized, or his chat window is on screen. He reads each reply as it arrives and listens the whole time: talk over him to interrupt, and what you say sends when you pause. Stay quiet, type, or minimize him to stop. Speech is recognized on this Mac when possible.")
+            Text((hasKey ? "Replies are spoken with ElevenLabs using your ELEVENLABS key from Chatterbox's Secrets: their text goes to ElevenLabs and uses your credits. " : "") + "Open means the mini isn't minimized, or his chat window is on screen. He reads each reply as it arrives and always finishes unless you press stop or mute; then he listens, and what you say sends when you pause. Stay quiet, type, or minimize him to stop. Speech is recognized on this Mac when possible.")
         }
         .task {
             guard let key = ElevenLabs.key() else { hasKey = false; return }
