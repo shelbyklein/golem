@@ -11,6 +11,8 @@ final class FakeSource: RecognitionSource, @unchecked Sendable {
     var starts = 0, begins = 0, ends = 0, stops = 0
     var handlers: [@Sendable (RecognitionEvent) -> Void] = []
     var stopped: (@Sendable (String) -> Void)?
+    var meter: (@Sendable (Float) -> Void)?
+    func onInputLevel(_ handler: @escaping @Sendable (Float) -> Void) { meter = handler }
     var isRunning: Bool { running }
     func start() async -> String? { if !running { running = true; starts += 1 }; return nil }
     func begin(_ handler: @escaping @Sendable (RecognitionEvent) -> Void) -> String? { begins += 1; handlers.append(handler); return nil }
@@ -72,12 +74,20 @@ final class FakeSource: RecognitionSource, @unchecked Sendable {
     // Utterance 1: no punctuation, so the full pause applies.
     listener.beginUtterance()
     precondition(listener.listening && fake.begins == 1)
+    fake.meter?(0); await settle()
+    precondition(listener.inputStatus.contains("No microphone sound") && listener.heard.isEmpty)
+    fake.meter?(0.2); await settle()
+    precondition(listener.inputStatus.contains("Hearing audio") && listener.heard.isEmpty)
+    print("PASS microphone signal feedback distinguishes silence from audio without inventing recognized words")
     fake.emit(.partial("")); await settle()
     precondition(detected == 0 && transcripts.isEmpty, "empty partial counted as speech")
     fake.emit(.partial("I")); await settle()
     precondition(detected == 0, "a one-letter word fired barge-in")
     fake.emit(.partial("I am")); await settle()
     precondition(detected == 1, "first qualifying word didn't fire barge-in (\(detected))")
+    fake.meter?(0); await settle()
+    precondition(listener.inputStatus == "Hearing you — pause to send")
+    print("PASS recognized words take priority over microphone metering")
     fake.emit(.partial("I am here")); await settle()
     let spoke1 = Date()
     fake.emit(.partial("I am here now")); await settle()

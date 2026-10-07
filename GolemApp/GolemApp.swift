@@ -96,6 +96,12 @@ struct GolemRoot:View {
         .frame(minWidth:640,minHeight:500)
         .toolbar{GolemVoiceToolbar()}
         .safeAreaInset(edge: .bottom) {
+            if GolemTalk.shared.listening {
+                Text(GolemTalk.shared.inputStatus)
+                    .font(.caption).foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(8).background(.regularMaterial)
+            }
             if let problem = GolemTalk.shared.problem {
                 Label(problem, systemImage: "exclamationmark.triangle.fill")
                     .font(.callout).foregroundStyle(.orange)

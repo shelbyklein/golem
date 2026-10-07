@@ -24,6 +24,7 @@ import SwiftUI
     private(set) var problem: String? { didSet { model?.dotMiniWindow?.voiceProblem = problem } }
     var speaking: Bool { speaker.speaking }
     var listening: Bool { listener.listening }
+    var inputStatus: String { listener.inputStatus }
     var lastSpoken: (engine: String, at: Date)? { speaker.lastSpoken }
 
     /// How long silence with no words ends listening outside a conversation (30 s inside one).
@@ -63,8 +64,9 @@ import SwiftUI
     /// Reflects the pieces' state on the mini and in Settings.
     private func mirror() {
         model?.dotMiniWindow?.listening = listener.listening
+        model?.dotMiniWindow?.listeningStatus = listener.inputStatus
         if let p = speaker.problem ?? listener.problem, p != problem { problem = p }
-        withObservationTracking { _ = speaker.speaking; _ = listener.listening; _ = speaker.problem; _ = listener.problem } onChange: {
+        withObservationTracking { _ = speaker.speaking; _ = listener.listening; _ = listener.inputStatus; _ = speaker.problem; _ = listener.problem } onChange: {
             Task { @MainActor [weak self] in self?.mirror() }
         }
     }
@@ -290,12 +292,24 @@ import SwiftUI
     /// Explicit, one-shot deployment check; never runs during normal launch or sends a chat.
     static func runSmokeIfRequested() async {
         let args = CommandLine.arguments
+        if let index = args.firstIndex(of: "--golem-recognizer-check"), args.indices.contains(index + 2) {
+            let evidence = await SpeechRecognitionSource.checkRecognitionFile(URL(fileURLWithPath: args[index + 1]))
+            try? Data(evidence.utf8).write(to: URL(fileURLWithPath: args[index + 2]))
+            return
+        }
         if let index = args.firstIndex(of: "--golem-input-check"), args.indices.contains(index + 1) {
             let output = URL(fileURLWithPath: args[index + 1])
             let listener = GolemListener()
             let ready = await listener.warmUp()
             if ready { listener.beginUtterance() }
-            let evidence = "Engine ready with input buffers: \(ready)\nRecognition opened: \(listener.listening)\nProblem: \(listener.problem ?? "none")\n"
+            var recognizedCharacters = 0
+            listener.onTranscript = { recognizedCharacters = max(recognizedCharacters, $0.count) }
+            listener.giveUp = 20
+            // Diagnostic only: never sends a chat or saves words/audio.
+            if args.contains("--golem-input-observe") {
+                try? await Task.sleep(for: .seconds(15))
+            }
+            let evidence = "Engine ready with input buffers: \(ready)\nRecognition opened: \(listener.listening)\nRecognized characters: \(recognizedCharacters)\nProblem: \(listener.problem ?? "none")\n"
             listener.stop()
             try? Data(evidence.utf8).write(to: output)
             return

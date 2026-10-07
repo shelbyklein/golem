@@ -28,6 +28,12 @@ protocol RecognitionSource: AnyObject, Sendable {
     func stop()
     /// Called with a user-facing message if the engine stops by itself and can't be restarted.
     func onEngineStopped(_ handler: @escaping @Sendable (String) -> Void)
+    func onInputLevel(_ handler: @escaping @Sendable (Float) -> Void)
+}
+
+extension RecognitionSource {
+    // Fixtures without audio hardware can omit metering.
+    func onInputLevel(_ handler: @escaping @Sendable (Float) -> Void) {}
 }
 
 /// Hands the tap's buffers to whichever request is current.
@@ -36,18 +42,59 @@ private final class AudioRequestBox: @unchecked Sendable {
     private let lock = NSLock()
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var receivedAudio = false
+    private var requestBuffers = 0
+    private var requestPeak: Float = 0
+    private var reportedAt = Date()
+    private var meter: (@Sendable (Float) -> Void)?
+    func onInputLevel(_ handler: @escaping @Sendable (Float) -> Void) { lock.lock(); meter = handler; lock.unlock() }
     func resetAudioDiagnostics() { lock.lock(); receivedAudio = false; lock.unlock() }
     var hasAudio: Bool { lock.lock(); defer { lock.unlock() }; return receivedAudio }
     func set(_ new: SFSpeechAudioBufferRecognitionRequest?) -> SFSpeechAudioBufferRecognitionRequest? {
         lock.lock(); defer { lock.unlock() }
         let old = request
         request = new
+        requestBuffers = 0; requestPeak = 0; reportedAt = Date()
         return old
     }
+    /// Handles integer Bluetooth PCM as well as float PCM; honors interleaved channel stride.
+    private static func peak(in buffer: AVAudioPCMBuffer) -> Float {
+        var peak: Float = 0
+        let stride = buffer.stride
+        for channel in 0..<Int(buffer.format.channelCount) {
+            for frame in 0..<Int(buffer.frameLength) {
+                let pointerIndex = buffer.format.isInterleaved ? 0 : channel
+                let index = frame * stride + (buffer.format.isInterleaved ? channel : 0)
+                let sample: Float
+                switch buffer.format.commonFormat {
+                case .pcmFormatFloat32: sample = buffer.floatChannelData?[pointerIndex][index] ?? 0
+                case .pcmFormatFloat64:
+                    let data = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: buffer.audioBufferList))
+                    guard let pointer = data[pointerIndex].mData else { continue }
+                    sample = Float(pointer.assumingMemoryBound(to: Double.self)[index])
+                case .pcmFormatInt16: sample = Float(buffer.int16ChannelData?[pointerIndex][index] ?? 0) / 32768
+                case .pcmFormatInt32: sample = Float(buffer.int32ChannelData?[pointerIndex][index] ?? 0) / 2147483648
+                default: continue
+                }
+                peak = max(peak, abs(sample))
+            }
+        }
+        return peak
+    }
     func append(_ buffer: AVAudioPCMBuffer) {
-        lock.lock(); let current = request; let first = !receivedAudio; receivedAudio = true; lock.unlock()
+        let peak = Self.peak(in: buffer)
+        lock.lock()
+        let current = request; let first = !receivedAudio; receivedAudio = true
+        if current != nil { requestBuffers += 1; requestPeak = max(requestPeak, peak) }
+        let report = current != nil && Date().timeIntervalSince(reportedAt) >= 2
+        let count = requestBuffers, level = requestPeak, meter = self.meter
+        if report { reportedAt = Date(); requestPeak = 0 }
+        lock.unlock()
+        if report {
+            meter?(level)
+            Self.log.notice("Recognition input: \(count, privacy: .public) buffers; peak \(level, privacy: .public)")
+        }
         if first {
-            Self.log.notice("Input audio arrived: \(buffer.frameLength, privacy: .public) frames at \(buffer.format.sampleRate, privacy: .public) Hz")
+            Self.log.notice("Input audio arrived: \(buffer.frameLength, privacy: .public) frames at \(buffer.format.sampleRate, privacy: .public) Hz; PCM format \(buffer.format.commonFormat.rawValue, privacy: .public)")
         }
         current?.append(buffer)
     }
@@ -67,6 +114,8 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
     private var stopped: (@Sendable (String) -> Void)?
 
     var isRunning: Bool { lock.lock(); defer { lock.unlock() }; return engine?.isRunning == true }
+
+    func onInputLevel(_ handler: @escaping @Sendable (Float) -> Void) { box.onInputLevel(handler) }
 
     func onEngineStopped(_ handler: @escaping @Sendable (String) -> Void) {
         lock.lock(); stopped = handler; lock.unlock()
@@ -147,14 +196,17 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
         request.shouldReportPartialResults = true
         request.addsPunctuation = true
         if recognizer.supportsOnDeviceRecognition { request.requiresOnDeviceRecognition = true }
+        Self.log.notice("Recognition opened: locale \(recognizer.locale.identifier, privacy: .public); on-device \(request.requiresOnDeviceRecognition, privacy: .public); available \(recognizer.isAvailable, privacy: .public)")
         _ = box.set(request)
         let task = recognizer.recognitionTask(with: request) { result, error in
             if let result {
+                Self.log.notice("Recognition result: final \(result.isFinal, privacy: .public); characters \(result.bestTranscription.formattedString.count, privacy: .public)")
                 let text = result.bestTranscription.formattedString
                 handler(result.isFinal ? .final(text) : .partial(text))
             }
             if let error {
                 let failure = error as NSError
+                Self.log.error("Recognition callback error: \(failure.domain, privacy: .public) code \(failure.code, privacy: .public)")
                 handler(.failure(domain: failure.domain, code: failure.code, description: failure.localizedDescription))
             }
         }
@@ -195,6 +247,40 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
             handler?("Listening stopped: the microphone changed. Try Conversation again.")
         }
     }
+
+    #if DEBUG
+    private final class RecognitionCheck: @unchecked Sendable {
+        private let lock = NSLock()
+        private var characters = 0
+        private var failure: String?
+        func update(_ result: SFSpeechRecognitionResult?, _ error: Error?) {
+            lock.lock(); defer { lock.unlock() }
+            if let result { characters = max(characters, result.bestTranscription.formattedString.count) }
+            if let error { let e = error as NSError; failure = "\(e.domain) / \(e.code)" }
+        }
+        var snapshot: (Int, String?) { lock.lock(); defer { lock.unlock() }; return (characters, failure) }
+    }
+    /// No chat, recorded microphone audio, or paid synthesis: validates Apple recognition with a local fixture.
+    static func checkRecognitionFile(_ url: URL) async -> String {
+        guard await permitted(), let recognizer = SFSpeechRecognizer() else { return "Recognition unavailable\n" }
+        var evidence = "Locale: \(recognizer.locale.identifier)\n"
+        for local in [true, false] {
+            let request = SFSpeechURLRecognitionRequest(url: url)
+            request.requiresOnDeviceRecognition = local
+            request.shouldReportPartialResults = true
+            let result = RecognitionCheck()
+            let task = recognizer.recognitionTask(with: request) { result.update($0, $1) }
+            let deadline = Date().addingTimeInterval(10)
+            while Date() < deadline, result.snapshot.0 == 0, result.snapshot.1 == nil {
+                try? await Task.sleep(for: .milliseconds(100))
+            }
+            let snapshot = result.snapshot
+            evidence += "On-device \(local): characters \(snapshot.0); error \(snapshot.1 ?? "none")\n"
+            task.cancel()
+        }
+        return evidence
+    }
+    #endif
 
     private static func permitted() async -> Bool {
         let speech: Bool = await withCheckedContinuation { continuation in
@@ -244,6 +330,8 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
     private(set) var engineRunning = false
     /// The current utterance so far.
     private(set) var heard = ""
+    /// Audio arrival is separate from successful speech recognition.
+    private(set) var inputStatus = "Waiting for microphone sound…"
     private(set) var problem: String?
 
     /// Partial words of the current utterance, each time they change.
@@ -269,6 +357,12 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
     init(source: any RecognitionSource = SpeechRecognitionSource()) {
         self.source = source
         super.init()
+        source.onInputLevel { [weak self] level in
+            Task { @MainActor in
+                guard let self, self.listening, self.heard.isEmpty else { return }
+                self.inputStatus = level > 0.0001 ? "Hearing audio… recognizing words" : "No microphone sound — check Sound → Input"
+            }
+        }
         source.onEngineStopped { [weak self] message in
             Task { @MainActor in self?.engineStopped(message) }
         }
@@ -305,6 +399,7 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
     func beginUtterance() {
         guard !listening, engineRunning else { return }
         heard = ""
+        inputStatus = "Waiting for microphone sound…"
         detected = false
         lastHeard = Date()
         guard open() else { return }
@@ -383,6 +478,7 @@ final class SpeechRecognitionSource: RecognitionSource, @unchecked Sendable {
         guard text != heard else { return }
         Self.log.notice("Transcription updated: \(text.count) characters")
         heard = text
+        inputStatus = "Hearing you — pause to send"
         lastHeard = Date()
         if !detected, Self.words(in: text) >= max(1, bargeInMinimumWords) {
             detected = true
