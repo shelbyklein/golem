@@ -89,6 +89,7 @@ targets:
     - path: Core/Shared/Backend.swift
     - path: Core/Shared/MediaKind.swift
     - path: Core/Shared/FilePaths.swift
+    - path: Core/Shared/CompanionAPI.swift
     - path: Core/ChatterboxRuntime/AssistantInstructions.swift
     - path: Core/ChatterboxRuntime/RuntimeWire.swift
     - path: Core/ChatterboxRuntime/RuntimePaths.swift

@@ -164,6 +164,7 @@
 		A3BD0100990EEA9B3736DBF3 /* GolemQuickPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12927DB05D249C916F56CE9F /* GolemQuickPrompts.swift */; };
 		A5DA53A1CF29CD22CE328A48 /* ChatListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B08F562280C2348E4CBA3E /* ChatListView.swift */; };
 		A62AEE04DF56EAB8B3375E10 /* GolemSidePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF89DFFCA1DF6B622522F8C /* GolemSidePanel.swift */; };
+		A6DD01B8D1D169A643F4AB25 /* CompanionAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E04385394CF46FD805967EB6 /* CompanionAPI.swift */; };
 		A7479491E7A50E9F57621C6D /* GolemJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB2050E903C47213A5D35C0 /* GolemJournal.swift */; };
 		A7CD5C33FF6083352A085129 /* HostClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAE270A1734AC71695D71B13 /* HostClient.swift */; };
 		A81DDA79E83E1251C5BD4AC3 /* WideFormStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE7C80DCC2E70D95999225AA /* WideFormStyle.swift */; };
@@ -1168,6 +1169,7 @@
 				B7EB744E08EA18D54CA62D2E /* CodexAppServer.swift in Sources */,
 				6B577582750D975807AAE341 /* CodexModelCatalog.swift in Sources */,
 				8294960B84E09A31E77427EC /* CodexRoute.swift in Sources */,
+				A6DD01B8D1D169A643F4AB25 /* CompanionAPI.swift in Sources */,
 				75CFECCE2A1545B215F5B8A3 /* ConversationRuntime.swift in Sources */,
 				64D8E369134B1D7F23279C06 /* EasyCLIProxy.swift in Sources */,
 				66D173D1B44D436C7683192B /* EmailSweep.swift in Sources */,
