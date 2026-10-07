@@ -89,7 +89,7 @@ NavigationStack {
                     MobileNotificationControls()
                     Section {
                         NavigationLink("Quick Prompts"){GolemQuickPromptsEditor()}
-                    } footer: {Text("Buttons above Golem’s message box that send a prepared message, like “Catch me up”.")}
+                    } footer: {Text("Prepared messages, like “Catch me up”, in the menu when you tap Golem at the top left of his conversation.")}
                     GolemVoiceSettings()
                     GolemAppearanceSettings()
                     Section("Automation on your Mac") {
@@ -297,7 +297,7 @@ struct GolemQuickPromptsEditor:View {
                     update{$0.append(added)}}
                 } label:{Label("Add Prompt",systemImage:"plus")}
             } footer: {
-                Text("Tapping a prompt sends it to Golem right away. In the text, {since} becomes the time an hour ago and {now} the time now.")
+                Text("Choosing a prompt from Golem’s menu sends it right away. In the text, {since} becomes the time an hour ago and {now} the time now.")
             }
             Section{Button("Restore Defaults"){data=GolemQuickPrompts.encode(GolemQuickPrompts.defaults)}}
         }
