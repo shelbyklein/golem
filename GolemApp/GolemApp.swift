@@ -23,8 +23,25 @@ import AppKit
     }
 }
 
+/// Golem lives on the iPhone. On the Mac he's off unless turned back on with
+/// `defaults write com.shelbyklein.Golem golemDesktop -bool true`; his service (golemd) runs either way.
+enum GolemDesktop {
+    static let key="golemDesktop"
+    static var enabled:Bool {
+        #if DEBUG
+        // Test runs drive the desktop app on purpose.
+        if ProcessInfo.processInfo.environment.keys.contains(where:{$0.hasPrefix("GOLEM_")}) {return true}
+        #endif
+        return AppPreferences.defaults.bool(forKey:key)
+    }
+}
+
 final class GolemAppDelegate:NSObject,NSApplicationDelegate {
     @MainActor static var model:AppModel?
+    @MainActor func applicationWillFinishLaunching(_ notification:Notification) {
+        // Off on the Mac: no Dock icon, menu bar, mini or window.
+        if !GolemDesktop.enabled {NSApp.setActivationPolicy(.prohibited)}
+    }
     @MainActor func applicationDidFinishLaunching(_ notification:Notification) {
         guard let model=Self.model else{return}
         Task{await GolemLaunch.run(model)}
@@ -56,6 +73,7 @@ struct GolemCommands:Commands {
 /// Startup work that used to wait for the main window, which no longer opens at launch.
 @MainActor enum GolemLaunch {
     static func run(_ model:AppModel) async {
+        guard GolemDesktop.enabled else {await runHidden(model);return}
         Attention.shared.start(model:model)
         #if DEBUG
         let environment=ProcessInfo.processInfo.environment
@@ -76,6 +94,18 @@ struct GolemCommands:Commands {
         await GolemCapture.runIfRequested(model)
         await GolemTalk.runSmokeIfRequested()
         #endif
+    }
+
+    /// Off on the Mac: make sure his conversation exists on the service and his avatar is
+    /// current for the phone, then quit. No mini, window, voice or notifications.
+    private static func runHidden(_ model:AppModel) async {
+        for _ in 0..<150 where !RuntimeClient.shared.connected {try? await Task.sleep(for:.milliseconds(100))}
+        if RuntimeClient.shared.connected {
+            do{_ = try await RuntimeClient.shared.request("ensureAssistant")}catch{Diagnostics.note(error.localizedDescription)}
+            GolemAvatar.shared.refreshIfStale()
+            try? await Task.sleep(for:.seconds(5))
+        }
+        NSApp.terminate(nil)
     }
 }
 
