@@ -207,6 +207,7 @@
 		C5EB1ABDF44554EBF48F7123 /* GolemQuickPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12927DB05D249C916F56CE9F /* GolemQuickPrompts.swift */; };
 		C6C2BF8B542E434188A98004 /* DocumentViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74B5DFEF9FE8A22C69911FA2 /* DocumentViewer.swift */; };
 		C871F24CBBB2A19829D40B30 /* GolemListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0714D685B77E9A45E6A383BE /* GolemListener.swift */; };
+		C8821DCFBE93E81295FB4C6C /* MobileTranscriptCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11F075A1C9030472107536C /* MobileTranscriptCache.swift */; };
 		C8FC5A7AD85696D0B1FF0713 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B69D0154FCC7A7F3B5CAC7EB /* AVKit.framework */; };
 		C93FC01CFE3F39A24A23D99F /* TranscriptViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A54E8B1198E625DB226372 /* TranscriptViews.swift */; };
 		CA6818A8C8C9AE8BF6ED02F1 /* PinsAndExtras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63ACA53E2E66102689032124 /* PinsAndExtras.swift */; };
@@ -504,6 +505,7 @@
 		EF513E44F0C0AAB1A69F3995 /* ActivitySpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitySpinner.swift; sourceTree = "<group>"; };
 		EF685061AB7D8E512F379355 /* Attachments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Attachments.swift; sourceTree = "<group>"; };
 		F0FEE09A82D188D885775ABC /* TranscriptImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptImages.swift; sourceTree = "<group>"; };
+		F11F075A1C9030472107536C /* MobileTranscriptCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileTranscriptCache.swift; sourceTree = "<group>"; };
 		F384DFD5EFABDD97295AB50B /* GolemApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemApp.swift; sourceTree = "<group>"; };
 		F440DD7298657CFA3A4A9600 /* RuntimeWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeWire.swift; sourceTree = "<group>"; };
 		F4E1D4F004807A7A06EC5F02 /* GolemCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemCapture.swift; sourceTree = "<group>"; };
@@ -708,6 +710,7 @@
 				56AE3286E702C4341F9B14A7 /* MobilePDFViewer.swift */,
 				A51DFE09E690C3416D4AFA29 /* MobilePushNotifications.swift */,
 				C16F327C3313D2D2CC87F310 /* MobileStore.swift */,
+				F11F075A1C9030472107536C /* MobileTranscriptCache.swift */,
 				0E3A285989AE74B4757C0CF2 /* MobileWidgetSync.swift */,
 				63ACA53E2E66102689032124 /* PinsAndExtras.swift */,
 				8609433DFC535CD0D1055CE6 /* SketchView.swift */,
@@ -1236,6 +1239,7 @@
 				82798794F1A7A982CA71206F /* MobilePDFViewer.swift in Sources */,
 				840BB1D1F0AFDAA95B3CEC22 /* MobilePushNotifications.swift in Sources */,
 				54A4A710843379EDB2DCC786 /* MobileStore.swift in Sources */,
+				C8821DCFBE93E81295FB4C6C /* MobileTranscriptCache.swift in Sources */,
 				FACE9B9FA38F01827737B450 /* MobileWidgetSync.swift in Sources */,
 				F3EC67DE34653EF9F69397C6 /* PathLinks.swift in Sources */,
 				CA6818A8C8C9AE8BF6ED02F1 /* PinsAndExtras.swift in Sources */,
