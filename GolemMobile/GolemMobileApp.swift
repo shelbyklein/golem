@@ -85,6 +85,9 @@ struct GolemMobileRoot:View {
     private var settingsView:some View {
 NavigationStack {
                 Form {
+                    Section{
+                        NavigationLink{GolemCapabilitiesView()} label:{Label("What Golem Can Do",systemImage:"sparkles")}
+                    }
                     Section("Connection"){
                         Text(store.connection?.macName ?? "Mac")
                         if let problem=store.problem{Text(problem).foregroundStyle(.orange)}

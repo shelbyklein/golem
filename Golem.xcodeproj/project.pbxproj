@@ -191,6 +191,7 @@
 		B97DA2A3902600FE1A1103B3 /* ChatSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2969135A8125DCF65C916C /* ChatSession.swift */; };
 		B9C84BD9B68B61EC68344559 /* KeepAwake.swift in Sources */ = {isa = PBXBuildFile; fileRef = C556C133B88EB69FBE3E15C9 /* KeepAwake.swift */; };
 		BA8358B1FC2A2B6DE8350D32 /* ChatSession+Remote.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7E5DF0205FB514B074DDB5D /* ChatSession+Remote.swift */; };
+		BC328C26CBE6D2AD8A2EFC29 /* GolemCapabilitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BDA4F64D1E21A72EA63D268 /* GolemCapabilitiesView.swift */; };
 		BCC9A1AC318098C689F9FDDD /* Prompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA31EAB4B7DC862FCDE2B992 /* Prompts.swift */; };
 		BD3B633938C7287912BFAA67 /* ModelPresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFE25478572980E3246C0A2C /* ModelPresets.swift */; };
 		BD424F77035981405E7BD143 /* ActivitySpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF513E44F0C0AAB1A69F3995 /* ActivitySpinner.swift */; };
@@ -342,6 +343,7 @@
 		270568B40AFD3896767E1C41 /* MobileHTMLPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileHTMLPreview.swift; sourceTree = "<group>"; };
 		270C285BDDA9168D34B49B98 /* ChatSession+Tasks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Tasks.swift"; sourceTree = "<group>"; };
 		297B31D55BF184677F511A0C /* ChatFind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatFind.swift; sourceTree = "<group>"; };
+		2BDA4F64D1E21A72EA63D268 /* GolemCapabilitiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemCapabilitiesView.swift; sourceTree = "<group>"; };
 		2C2157FEB9080317B9811792 /* ProxyQuotaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyQuotaView.swift; sourceTree = "<group>"; };
 		2EEB388F77EB5C0C2AA41D90 /* ProxyQuota.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProxyQuota.swift; sourceTree = "<group>"; };
 		3334B475B27B9C68341113CD /* ChatSession+Shell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Shell.swift"; sourceTree = "<group>"; };
@@ -687,6 +689,7 @@
 				B8295E97C90F32F8FF05EFC2 /* Dictation.swift */,
 				03B42DB84549B26EC597A958 /* GolemAppearance.swift */,
 				40581CB80B99DA7BE4F18885 /* GolemAudioSession.swift */,
+				2BDA4F64D1E21A72EA63D268 /* GolemCapabilitiesView.swift */,
 				396F7F58E41B0863DC038D2C /* GolemVoice.swift */,
 				1AD15667EF7F7372831F72E6 /* MobileAppearance.swift */,
 				EF14BEF7AE792853F96129BC /* MobileComposerDraft.swift */,
@@ -1203,6 +1206,7 @@
 				F6B8B3A26A2CCE92A31B73BD /* FilePaths.swift in Sources */,
 				4D4EF4EF90F2303F9F83CDC2 /* GolemAppearance.swift in Sources */,
 				CD3396D968BBBAC17ED95221 /* GolemAudioSession.swift in Sources */,
+				BC328C26CBE6D2AD8A2EFC29 /* GolemCapabilitiesView.swift in Sources */,
 				3323E1BD1843C8D644F54A5A /* GolemConversationShortcuts.swift in Sources */,
 				D3FE6E6A3AD66B21712A00AA /* GolemMobileApp.swift in Sources */,
 				A3BD0100990EEA9B3736DBF3 /* GolemQuickPrompts.swift in Sources */,
