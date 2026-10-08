@@ -124,10 +124,17 @@ targets:
     - path: Core/Chatterbox/Views/ReaderStyle.swift
     - path: Core/Chatterbox/Views/PathLinks.swift
     - path: GolemMobile
+    dependencies:
+    - target: GolemMobileWidget
     info:
       path: GolemMobile/Info.plist
       properties:
         CFBundleDisplayName: Golem
+        # golem://dictate (from the Home Screen widget): open listening for one message.
+        CFBundleURLTypes:
+        - CFBundleURLName: com.shelbyklein.Golem.mobile
+          CFBundleURLSchemes:
+          - golem
         ChatterboxAPNsEnvironment: $(APNS_ENVIRONMENT)
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
@@ -187,6 +194,34 @@ targets:
           APNS_ENVIRONMENT: development
         Release:
           APNS_ENVIRONMENT: production
+  GolemMobileWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: '17.0'
+    sources:
+    - path: GolemMobileWidget
+    - path: Core/Shared/GolemRig.swift
+    - path: Core/Shared/GolemRigView.swift
+    - path: Golem/rig
+      type: folder
+      buildPhase: resources
+    info:
+      path: GolemMobileWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Golem
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.shelbyklein.Golem.mobile.widget
+        PRODUCT_NAME: GolemWidget
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: '1'
+        TARGETED_DEVICE_FAMILY: 1,2
+        DEVELOPMENT_TEAM: 9F3MKVW9C5
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_VERSION: '5.0'
+        SKIP_INSTALL: true
   GolemMobileProductTests:
     type: bundle.ui-testing
     platform: iOS
