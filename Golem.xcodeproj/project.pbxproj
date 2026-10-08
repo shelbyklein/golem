@@ -101,6 +101,7 @@
 		61B188FBAE58FF7E57D58EF2 /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AFD14EA844AA5DFEEC2564 /* JSON.swift */; };
 		624E9E98D6F83D805D92282F /* CompanionRetry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756E68FA28C779625EC32A2E /* CompanionRetry.swift */; };
 		625E88FE634578C379365CA4 /* GolemModelSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DC65077A08ECA31B7B25B16 /* GolemModelSettings.swift */; };
+		63E16B43C97DA8662B242B6D /* GolemQuickPrompts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12927DB05D249C916F56CE9F /* GolemQuickPrompts.swift */; };
 		63FB04A1D7F8D4C30F542681 /* ProxyQuotaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C2157FEB9080317B9811792 /* ProxyQuotaView.swift */; };
 		63FBD081CD26F1961666B310 /* ItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B18B8FEB671C252784E772C /* ItemView.swift */; };
 		6414DDC6D1F6A8A46B23D4B8 /* RuntimeSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80D6FA1E0506587754DCB38 /* RuntimeSocket.swift */; };
@@ -238,6 +239,7 @@
 		EA9DE956AC2530D52054A45E /* UsageMeter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC9E24A51B9954739AA133F8 /* UsageMeter.swift */; };
 		EB6382593B9608310F9A78CF /* ChatSession+Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97157099C326532CB4FFEA01 /* ChatSession+Status.swift */; };
 		ECC3947646C924AA6E5360C2 /* MediaKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7248F29CC1AC287D9C8F3F6F /* MediaKind.swift */; };
+		EF0CB740379A52F987EE383A /* GolemWidgetLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDBF12F2E7BBCFD83E3C2769 /* GolemWidgetLinks.swift */; };
 		EF45432962A429C948497137 /* ChatSession+Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9F289D72AB4C6907A84B42 /* ChatSession+Media.swift */; };
 		EF9670E17CE83E6854ED0CBA /* MediaKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7248F29CC1AC287D9C8F3F6F /* MediaKind.swift */; };
 		F01BEAF4833BBCBA0EA04ED2 /* UtterancePause.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F56E16C874BEFB1AFE2B669 /* UtterancePause.swift */; };
@@ -386,6 +388,7 @@
 		63E139C9A5CC5B2DFEF17A4B /* MobileMedia.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileMedia.swift; sourceTree = "<group>"; };
 		6548671C5B3A382B580AD609 /* Studios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Studios.swift; sourceTree = "<group>"; };
 		664704B0770FAFEAB8A1856B /* FilePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilePaths.swift; sourceTree = "<group>"; };
+		674928197A6D45AEE8E03C0E /* GolemMobileWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GolemMobileWidget.entitlements; sourceTree = "<group>"; };
 		69E4999CB64EF7C7234EA841 /* ChatHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHomeView.swift; sourceTree = "<group>"; };
 		6C77BF46F8B7915D6217795F /* NewProjectSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewProjectSheet.swift; sourceTree = "<group>"; };
 		6C7C1B2222CE4A7AADB3DFB3 /* ChatWindowReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatWindowReader.swift; sourceTree = "<group>"; };
@@ -489,6 +492,7 @@
 		E3DDB74875A7D2A3F3054618 /* Dot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dot.swift; sourceTree = "<group>"; };
 		EAE270A1734AC71695D71B13 /* HostClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostClient.swift; sourceTree = "<group>"; };
 		EBE6B979ADBFCC125397FC0A /* ChatComputer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatComputer.swift; sourceTree = "<group>"; };
+		EDBF12F2E7BBCFD83E3C2769 /* GolemWidgetLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolemWidgetLinks.swift; sourceTree = "<group>"; };
 		EF14BEF7AE792853F96129BC /* MobileComposerDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MobileComposerDraft.swift; sourceTree = "<group>"; };
 		EF513E44F0C0AAB1A69F3995 /* ActivitySpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivitySpinner.swift; sourceTree = "<group>"; };
 		EF685061AB7D8E512F379355 /* Attachments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Attachments.swift; sourceTree = "<group>"; };
@@ -723,6 +727,7 @@
 				09828F46B79D0E9E780743B4 /* Assets.xcassets */,
 				BF9877547454F51AA5790DF4 /* GolemMobile.entitlements */,
 				B2E2C7A5E65AFC3085D168F2 /* GolemMobileApp.swift */,
+				EDBF12F2E7BBCFD83E3C2769 /* GolemWidgetLinks.swift */,
 				FBDE0B9F83C28968BF3C5954 /* Info.plist */,
 			);
 			path = GolemMobile;
@@ -747,6 +752,7 @@
 		AE2E2A235798C872AA8DD00E /* GolemMobileWidget */ = {
 			isa = PBXGroup;
 			children = (
+				674928197A6D45AEE8E03C0E /* GolemMobileWidget.entitlements */,
 				569FB1E8A82464A44DCB60AC /* GolemWidget.swift */,
 				87A1C1926FEBA523629E6FCD /* Info.plist */,
 			);
@@ -1203,6 +1209,7 @@
 				A19720C3DF9C35D15DEC4A0D /* GolemRig.swift in Sources */,
 				615C165EAA1BD198461527F4 /* GolemRigView.swift in Sources */,
 				53977ED4B2FE3E8877389507 /* GolemVoice.swift in Sources */,
+				EF0CB740379A52F987EE383A /* GolemWidgetLinks.swift in Sources */,
 				5096BB334DCF593048FC902F /* MarkdownText.swift in Sources */,
 				2179D16983D62AA60F238A72 /* MediaKind.swift in Sources */,
 				237BF5AFDFF01A05B04D26DD /* MobileAppearance.swift in Sources */,
@@ -1234,6 +1241,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63E16B43C97DA8662B242B6D /* GolemQuickPrompts.swift in Sources */,
 				7476BA7E8B4CAF10E09A0D57 /* GolemRig.swift in Sources */,
 				6BE88786CB197191CDB8CAD2 /* GolemRigView.swift in Sources */,
 				AD1A605E32AA3F2589001DAF /* GolemWidget.swift in Sources */,
@@ -1470,6 +1478,7 @@
 		B20FC659D62C4F350D71E86C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = GolemMobileWidget/GolemMobileWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9F3MKVW9C5;
@@ -1653,6 +1662,7 @@
 		FF4C8DEF2D5F0B2E611A37D5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = GolemMobileWidget/GolemMobileWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9F3MKVW9C5;

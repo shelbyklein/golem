@@ -21,11 +21,6 @@ import SwiftUI
             }.environment(store).defaultAppStorage(AppPreferences.defaults).environment(\.readerStyle,.mobile)
             // While Golem is open on screen the iPhone doesn't auto-lock; iOS restores it when he isn't.
             .onChange(of:scenePhase,initial:true){_,phase in UIApplication.shared.isIdleTimerDisabled = phase == .active}
-            // golem://dictate, from the Home Screen widget: Golem's conversation, listening for one message.
-            .onOpenURL{url in
-                guard url.scheme=="golem",url.host=="dictate" else{return}
-                Task{try? await GolemConversationRequest.shared.run(start:true,once:true)}
-            }
             #if DEBUG
             .task {
                 let env=ProcessInfo.processInfo.environment
@@ -43,7 +38,7 @@ struct GolemMobileRoot:View {
     @State private var controlProblem:String?
     @State private var policies:[String:Bool]=[:]
     @Environment(\.horizontalSizeClass) private var sizeClass
-    private enum Destination:String,CaseIterable,Identifiable {
+    enum Destination:String,CaseIterable,Identifiable {
         case golem="Golem",journal="Journal",notes="Notes",settings="Settings"
         var id:String{rawValue}
         var icon:String{switch self{case .golem:return "sparkles";case .journal:return "book";case .notes:return "note.text";case .settings:return "gearshape"}}
@@ -73,6 +68,7 @@ struct GolemMobileRoot:View {
         }
         }
         }
+        .modifier(GolemWidgetLinks(destination:$destination))
         .onChange(of: GolemConversationRequest.shared.pending?.id, initial: true) { _, id in
             if id != nil { destination = .golem }
         }

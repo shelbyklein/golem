@@ -202,6 +202,7 @@ targets:
     - path: GolemMobileWidget
     - path: Core/Shared/GolemRig.swift
     - path: Core/Shared/GolemRigView.swift
+    - path: Core/Shared/GolemQuickPrompts.swift
     - path: Golem/rig
       type: folder
       buildPhase: resources
@@ -215,6 +216,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.shelbyklein.Golem.mobile.widget
         PRODUCT_NAME: GolemWidget
+        CODE_SIGN_ENTITLEMENTS: GolemMobileWidget/GolemMobileWidget.entitlements
         MARKETING_VERSION: 0.1.0
         CURRENT_PROJECT_VERSION: '1'
         TARGETED_DEVICE_FAMILY: 1,2
