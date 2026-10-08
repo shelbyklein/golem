@@ -38,7 +38,7 @@ struct GolemMobileRoot:View {
     @State private var controlProblem:String?
     @State private var policies:[String:Bool]=[:]
     @Environment(\.horizontalSizeClass) private var sizeClass
-    private enum Destination:String,CaseIterable,Identifiable {
+    enum Destination:String,CaseIterable,Identifiable {
         case golem="Golem",journal="Journal",notes="Notes",settings="Settings"
         var id:String{rawValue}
         var icon:String{switch self{case .golem:return "sparkles";case .journal:return "book";case .notes:return "note.text";case .settings:return "gearshape"}}
@@ -68,6 +68,7 @@ struct GolemMobileRoot:View {
         }
         }
         }
+        .modifier(GolemWidgetLinks(destination:$destination))
         .onChange(of: GolemConversationRequest.shared.pending?.id, initial: true) { _, id in
             if id != nil { destination = .golem }
         }
@@ -84,6 +85,9 @@ struct GolemMobileRoot:View {
     private var settingsView:some View {
 NavigationStack {
                 Form {
+                    Section{
+                        NavigationLink{GolemCapabilitiesView()} label:{Label("What Golem Can Do",systemImage:"sparkles")}
+                    }
                     Section("Connection"){
                         Text(store.connection?.macName ?? "Mac")
                         if let problem=store.problem{Text(problem).foregroundStyle(.orange)}
