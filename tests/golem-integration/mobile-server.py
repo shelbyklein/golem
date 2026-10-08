@@ -2,6 +2,10 @@ import http.server,json,os
 from pathlib import Path
 RIG=Path(__file__).resolve().parents[2]/"Golem/rig"
 G='11111111-1111-1111-1111-111111111111';C='33333333-3333-3333-3333-333333333333'
+# Golem's model settings, as the gear and the model pill read them.
+GOLEM_OPTIONS=dict(backend='codex',model='gpt-6-luna',effort='low',mode='default',presets=[],modes=[],
+ claudeModels=[dict(id='haiku',name='Haiku',detail='Fast and light',efforts=[])],
+ codexModels=[dict(id='gpt-6-luna',name='GPT-6 Luna',detail='Fast',efforts=['low','medium'],defaultEffort='low')])
 def summary(id,title,dot):return dict(id=id,title=title,subtitle='Fixture',backend='claude',isRunning=False,isWaitingOnYou=False,updatedAt='2026-10-04T00:00:00Z',isDot=dot)
 paused=False
 offline=False
@@ -34,6 +38,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
   if self.path.startswith('/v1/chats/'):
    if '?since=1' in self.path:return self.reply({'unchanged':True,'revision':1})
    id=self.path.split('/')[3].split('?')[0];dot=id==G
-   return self.reply(dict(revision=1,summary=summary(id,'Golem' if dot else 'Ordinary fixture',dot),settings='Claude · Default',items=[dict(id='44444444-4444-4444-4444-444444444444',kind='assistant',text='Fixture briefing' if dot else 'Fixture ordinary reply',isStreaming=False,isCommentary=False,isPending=False,attachments=[],isQueued=False)],earlierCount=0))
+   return self.reply(dict(revision=1,summary=summary(id,'Golem' if dot else 'Ordinary fixture',dot),settings='Claude · Default',**(dict(options=GOLEM_OPTIONS) if dot else {}),items=[dict(id='44444444-4444-4444-4444-444444444444',kind='assistant',text='Fixture briefing' if dot else 'Fixture ordinary reply',isStreaming=False,isCommentary=False,isPending=False,attachments=[],isQueued=False)],earlierCount=0))
   self.send_error(404)
 http.server.ThreadingHTTPServer(('127.0.0.1',47411),Handler).serve_forever()
