@@ -10,7 +10,7 @@ for dir in tests/golem-ios-voice/*/; do
   [ "$want" = all ] || [ "$want" = "$n" ] || continue
   ran=1; out=$(mktemp -d "/tmp/golem-ios-voice-$n.XXXXXX")
   srcs=(); [ -f "$dir/sources" ] && while read -r s; do [ -n "$s" ] && srcs+=("$s"); done < "$dir/sources"
-  if ! swiftc -o "$out/test" "${srcs[@]}" "$dir/main.swift" 2>"$out/compile.log"; then
+  if ! swiftc -D DEBUG -o "$out/test" "${srcs[@]}" "$dir/main.swift" 2>"$out/compile.log"; then
     echo "FAIL $n (compile): $(grep error: "$out/compile.log" | head -3)"; failed=1; continue
   fi
   if "$out/test" >"$out/run.log" 2>&1 && grep -q '^PASS' "$out/run.log"; then
