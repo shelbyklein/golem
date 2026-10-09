@@ -157,6 +157,7 @@
 		94F3F1DF0D5E6F38A8E6262F /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA7B0A03CA1052A00314FDB /* ChatView.swift */; };
 		96277C219CCCD9D21E1B1E1F /* ChatCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2288EB9E8319846897CAC00 /* ChatCommands.swift */; };
 		96EDF4E4AD1FF8C1D2650178 /* ChatSession+Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9F289D72AB4C6907A84B42 /* ChatSession+Media.swift */; };
+		99641C42F613D8B57D9238C0 /* ChatPins.swift in Sources */ = {isa = PBXBuildFile; fileRef = E322F3DEF98E63362BA9983B /* ChatPins.swift */; };
 		9A09533F79EC20845FB14B86 /* GitHubIssues.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8B7B3DB6A9C69E939D05995 /* GitHubIssues.swift */; };
 		9A561C3B5638DC108C0A8851 /* AssistantConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 885D06BA0221CF36680E5CFA /* AssistantConfiguration.swift */; };
 		9A8D5659E35738951BA18EF7 /* MobileHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950561E8117AEE18BD699B2F /* MobileHome.swift */; };
@@ -505,6 +506,7 @@
 		E04385394CF46FD805967EB6 /* CompanionAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionAPI.swift; sourceTree = "<group>"; };
 		E063FE67F7790B2464573C08 /* ChatSession+Claude.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Claude.swift"; sourceTree = "<group>"; };
 		E2D9F8EE9C8DD01650A34308 /* ChatSession+Codex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ChatSession+Codex.swift"; sourceTree = "<group>"; };
+		E322F3DEF98E63362BA9983B /* ChatPins.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatPins.swift; sourceTree = "<group>"; };
 		E3DDB74875A7D2A3F3054618 /* Dot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dot.swift; sourceTree = "<group>"; };
 		EAE270A1734AC71695D71B13 /* HostClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostClient.swift; sourceTree = "<group>"; };
 		EBE6B979ADBFCC125397FC0A /* ChatComputer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatComputer.swift; sourceTree = "<group>"; };
@@ -566,6 +568,7 @@
 				297B31D55BF184677F511A0C /* ChatFind.swift */,
 				69E4999CB64EF7C7234EA841 /* ChatHomeView.swift */,
 				9C2BD6D57EEA4010D35CACBB /* ChatImageGallery.swift */,
+				E322F3DEF98E63362BA9983B /* ChatPins.swift */,
 				52C83E45687C7B3E05A0AE73 /* ChatSettingsCog.swift */,
 				99547DC3FD8DD13C23C5F203 /* ChatSwitchTransition.swift */,
 				3C63E5B770F3AA5BE269BC19 /* ChatToolbar.swift */,
@@ -1082,6 +1085,7 @@
 				76765C8C6FB423E08F7AE0AE /* ChatFind.swift in Sources */,
 				315C9FBF19E57D054D8C22D1 /* ChatHomeView.swift in Sources */,
 				BE4255A6DF06FF270D0358F5 /* ChatImageGallery.swift in Sources */,
+				99641C42F613D8B57D9238C0 /* ChatPins.swift in Sources */,
 				356D41FAEABDED30CAF08EF5 /* ChatSession+Claude.swift in Sources */,
 				57059DA64265165D8202E2DF /* ChatSession+Codex.swift in Sources */,
 				E5EEEB1552B7D8717621931E /* ChatSession+Host.swift in Sources */,
