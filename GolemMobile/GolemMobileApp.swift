@@ -39,9 +39,9 @@ struct GolemMobileRoot:View {
     @State private var policies:[String:Bool]=[:]
     @Environment(\.horizontalSizeClass) private var sizeClass
     enum Destination:String,CaseIterable,Identifiable {
-        case golem="Golem",journal="Journal",notes="Notes",settings="Settings"
+        case golem="Golem",journal="Journal",talk="Talk",notes="Notes",settings="Settings"
         var id:String{rawValue}
-        var icon:String{switch self{case .golem:return "sparkles";case .journal:return "book";case .notes:return "note.text";case .settings:return "gearshape"}}
+        var icon:String{switch self{case .golem:return "sparkles";case .journal:return "book";case .talk:return "waveform";case .notes:return "note.text";case .settings:return "gearshape"}}
     }
     @State private var destination:Destination? = .golem
     var body:some View {
@@ -55,6 +55,7 @@ struct GolemMobileRoot:View {
                 switch destination ?? .golem {
                 case .golem:GolemHome()
                 case .journal:GolemJournalMobile()
+                case .talk:GolemTalkView()
                 case .notes:GolemNotesMobile()
                 case .settings:settingsView
                 }
@@ -63,6 +64,7 @@ struct GolemMobileRoot:View {
         TabView(selection: $destination) {
             GolemHome().tabItem{Label("Golem",systemImage:"sparkles")}.tag(Destination.golem as Destination?)
             GolemJournalMobile().tabItem{Label("Journal",systemImage:"book")}.tag(Destination.journal as Destination?)
+            GolemTalkView().tabItem{Label("Talk",systemImage:"waveform")}.tag(Destination.talk as Destination?)
             GolemNotesMobile().tabItem{Label("Notes",systemImage:"note.text")}.tag(Destination.notes as Destination?)
             settingsView.tabItem{Label("Settings",systemImage:"gearshape")}.tag(Destination.settings as Destination?)
         }
