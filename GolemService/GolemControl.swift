@@ -55,6 +55,8 @@ import Darwin
                 let keys=["dotCheckIns","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch"]
                 var preferences:[String:JSON]=[:]
                 for key in keys{preferences[key] = .bool(AppPreferences.defaults.object(forKey:key) as? Bool ?? true)}
+                // Off until turned on.
+                preferences["dotOutlookWatch"] = .bool(AppPreferences.defaults.object(forKey:"dotOutlookWatch") as? Bool ?? false)
                 result=["paused":.bool(jobs.state.paused),"problem":(jobs.state.emailProblem ?? jobs.state.problem).map(JSON.string) ?? .null,
                         "jobs":.number(Double(jobs.state.jobs.count)),"preferences":.object(preferences),
                         "checkInTimes":try .value(AppPreferences.defaults.array(forKey:"dotCheckInTimes") as? [Int] ?? [480,900]),

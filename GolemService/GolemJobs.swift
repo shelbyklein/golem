@@ -13,6 +13,10 @@ import CryptoKit
         var emailFailures:Int?;var emailFailingSince:Date?;var emailAlerted:Bool?
         /// Important mail found while catching up, briefed once when the watcher reaches the present.
         var emailBacklog:[EmailSweep.Email]?;var emailBacklogSince:Date?
+        /// The Outlook watcher (OutlookWatch): message ids already read (newest last; nil until the
+        /// first run records the inbox), the last attempt, and failures like the email watcher's.
+        var outlookKnown:[String]?;var outlookAttempt:Date?;var outlookProblem:String?
+        var outlookFailures:Int?;var outlookFailingSince:Date?;var outlookAlerted:Bool?
         /// Which chat each automatic turn was about (keyed by a hash of its text), so his reply can be filed under it.
         var jobChats:[String:UUID]?
         var notes:[Note]?}
@@ -30,7 +34,7 @@ import CryptoKit
     private var processing=false
     private var refreshing=false
     private var sweeping=false
-    var isSweeping:Bool{sweeping}
+    var isSweeping:Bool{sweeping || outlookSweeping}
     private var pendingEvents:[RuntimeEvent]=[]
     private var persistenceHealthy=true
     private var integrationEnabled=false
@@ -55,16 +59,21 @@ import CryptoKit
         }
     }
     func start(){
+        OutlookSweep.removeLeftovers()
         client.onEvent={ [weak self] event in self?.refresh(event) }
         client.start(role:"golem")
         timer=Timer.scheduledTimer(withTimeInterval:60,repeats:true){[weak self] _ in MainActor.assumeIsolated{self?.tick()}}
     }
-    func stop(){timer?.invalidate();timer=nil;EmailSweep.cancel();client.stop()}
-    func pause(_ paused:Bool){state.paused=paused;save();if paused{EmailSweep.cancel()}else{tick()}}
+    func stop(){timer?.invalidate();timer=nil;EmailSweep.cancel();OutlookSweep.cancel();client.stop()}
+    func pause(_ paused:Bool){state.paused=paused;save();if paused{EmailSweep.cancel();OutlookSweep.cancel()}else{tick()}}
     func checkInNow(){enqueue(id:"manual:\(UUID())",label:"Check-in",text:"Do your standing jobs from your memory and brief the user on anything that needs them. Reply NO_REPORT when nothing needs them.");drain()}
-    func sweepNow(){state.emailAttempt=nil;save();sweep(now:Date())}
+    func sweepNow(){
+        state.emailAttempt=nil;state.outlookAttempt=nil;save()
+        sweep(now:Date())
+        if AppPreferences.defaults.object(forKey:"dotOutlookWatch") as? Bool ?? false {outlookSweep(now:Date())}
+    }
     func settings(_ values:JSON) throws {
-        let keys:Set<String>=["dotCheckIns","dotCheckInTimes","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch","dotEmailModel"]
+        let keys:Set<String>=["dotCheckIns","dotCheckInTimes","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch","dotEmailModel","dotOutlookWatch"]
         guard let body=values.object,Set(body.keys).isSubset(of:keys) else{throw RuntimeFailure("unsupported_preference")}
         var staged=AppPreferences.defaults.dictionaryRepresentation().filter{keys.contains($0.key)}
         for (key,value) in body {
@@ -110,6 +119,7 @@ import CryptoKit
             }
         }
         if d.object(forKey:"dotEmailWatch") as? Bool ?? true {sweep(now:now)}
+        if d.object(forKey:"dotOutlookWatch") as? Bool ?? false {outlookSweep(now:now)}
         drain()
     }
     private func sweep(now:Date){
@@ -170,6 +180,73 @@ import CryptoKit
             }
         }
     }
+    // MARK: - Outlook
+
+    private var outlookSweeping=false
+    /// The Outlook inbox open in Chrome, on the email watch's schedule (see OutlookWatch). The first
+    /// run only records what's there; later ones read new messages, journal each, and hand the
+    /// important ones to Golem. Nothing is remembered from a failed run.
+    private func outlookSweep(now:Date){
+        let interval:TimeInterval=(9..<17).contains(Calendar.current.component(.hour,from:now)) ? 900:1800
+        let wait:TimeInterval=(state.outlookFailures ?? 0)>0 ? min(interval,300):interval
+        guard !state.paused,!outlookSweeping,now.timeIntervalSince(state.outlookAttempt ?? .distantPast)>=wait else{return}
+        state.outlookAttempt=now
+        guard let codex=CodexAppServer.locateBinary() else {outlookFailed("Outlook watcher cannot start Codex.",now:now);return}
+        if !RuntimePaths.data.path.hasPrefix("/tmp/golem-"),EmailCatchUp.looksLikeFixture(codex) {
+            outlookFailed("Outlook watcher is set to run a test provider instead of Codex (\(codex)).",now:now);return
+        }
+        let known=state.outlookKnown ?? [],baseline=state.outlookKnown==nil
+        save();outlookSweeping=true
+        Task {
+            defer{outlookSweeping=false}
+            let result=await OutlookSweep.run(codex:codex,model:AppPreferences.defaults.string(forKey:"dotEmailModel") ?? "gpt-6-luna",
+                                              prompt:OutlookWatch.prompt(name:"Golem",memory:RuntimePaths.assistantMemoryFolder.path,known:known,baseline:baseline))
+            guard !state.paused else{return}
+            let outcome:OutlookWatch.Outcome
+            switch result {
+            case .failure(let error):outcome = .failure(error.message)
+            case .success(let answer):outcome=OutlookWatch.evaluate(answer,known:known,baseline:baseline)
+            }
+            switch outcome {
+            case .failure(let why):outlookFailed(why,now:Date())
+            case .baseline(let ids):
+                outlookRecovered()
+                state.outlookKnown=ids;save()
+                journal(id:"outlook-started",title:"Watching Outlook",detail:"Golem is now watching the Outlook inbox open in Chrome. New messages from here on are summarized here; important ones he’ll bring to you.",kind:"activity",chat:nil)
+            case .processed(let messages,let ids):
+                outlookRecovered()
+                for message in messages {
+                    journal(id:"outlook:\(message.id)",title:"Outlook: \(message.subject.isEmpty ? "Message from \(message.from)" : message.subject)",
+                            detail:OutlookWatch.journalText(message),kind:"activity",chat:nil)
+                    if message.important {enqueue(id:"outlook-job:\(message.id)",label:"Outlook: \(message.subject)",text:Self.outlookJob(message))}
+                }
+                // Remembered only after each was journaled, so a crash before this re-reads rather than skips.
+                state.outlookKnown=ids;save();drain()
+            }
+        }
+    }
+    private func outlookRecovered(){
+        if state.problem != nil,state.problem==state.outlookProblem{state.problem=nil}
+        state.outlookProblem=nil;state.outlookFailures=nil;state.outlookFailingSince=nil;state.outlookAlerted=nil
+    }
+    /// A failed run remembers nothing, is shown as a problem (never as "no new mail"), and tells
+    /// the user once if it keeps failing.
+    private func outlookFailed(_ error:String,now:Date){
+        state.outlookProblem=error;state.problem=error
+        state.outlookFailures=(state.outlookFailures ?? 0)+1
+        if state.outlookFailingSince==nil{state.outlookFailingSince=now}
+        save()
+        guard EmailCatchUp.shouldAlert(failingSince:state.outlookFailingSince,failures:state.outlookFailures ?? 0,alerted:state.outlookAlerted ?? false,now:now),
+              let since=state.outlookFailingSince else{return}
+        state.outlookAlerted=true;save()
+        let text="Outlook watching has been failing since \(since.formatted(date:.abbreviated,time:.shortened)), so new Outlook mail isn’t being read. Last error: \(error) Nothing has been skipped; it will catch up once Outlook in Chrome is reachable."
+        journal(id:"outlook-failing:\(Int(since.timeIntervalSince1970))",title:"Outlook watching is failing",detail:text,kind:"activity",chat:nil)
+        Task {_ = try? await client.request("notify",body:["title":"Golem","text":.string(text)],id:"notification-outlook-failing-\(Int(since.timeIntervalSince1970))")}
+    }
+    private static func outlookJob(_ message:OutlookWatch.Message)->String {
+        "Outlook email that may need the user: \(message.subject) from \(message.from) (\(message.received)). \(OutlookWatch.journalText(message)) Check your conversation context and, if it relates to a project, the matching chat. If it's routine, already handled or needs no new user action, reply exactly NO_REPORT. Otherwise give a brief report of what it needs from the user. The watcher only read this message; do not send, reply, archive, change or act on any email."
+    }
+
     private func identity(_ email:EmailSweep.Email)->String {"email:\(email.account):\(email.id.isEmpty ? email.subject : email.id)"}
     private static func emailJob(_ email:EmailSweep.Email)->String {
         "Email candidate: \(email.subject) (\(email.account)). \(email.why) Suggested next step: \(email.action). \(email.link). Before reporting, check your conversation context and, for project alerts, list/read the matching project chat. Correlate the alert with existing work and link to that chat when relevant. If it is routine, already addressed, unchanged from an earlier alert, or needs no new user action, reply exactly NO_REPORT. Important school, appointments, life admin and USA Archery deserve contextual attention; ordinary autopay notices and speculative announcements stay quiet. Otherwise give a brief contextual report. This sweep only read mail; do not send, draft, archive, label, mark read or change any email."

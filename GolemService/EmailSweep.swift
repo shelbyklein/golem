@@ -134,7 +134,8 @@ enum EmailCatchUp {
     }
 }
 
-private final class EmailSweepRunner:@unchecked Sendable {
+/// One background Codex run at a time, cancellable. The Outlook watcher has its own.
+final class EmailSweepRunner:@unchecked Sendable {
     private let lock=NSLock()
     private var generation=0
     private var process:Process?

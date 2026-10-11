@@ -100,8 +100,9 @@ NavigationStack {
                     GolemVoiceSettings()
                     GolemAppearanceSettings()
                     Section("Automation on your Mac") {
-                        ForEach(["dotCheckIns","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch"],id:\.self){key in
-                            Toggle(policyLabel(key),isOn:Binding(get:{policies[key] ?? true},set:{value in policies[key]=value;control("settings",[key:value])}))
+                        ForEach(["dotCheckIns","dotWatchWaiting","dotSummarizeFinished","dotEmailWatch","dotOutlookWatch"],id:\.self){key in
+                            // The Outlook watcher is off until turned on; the others are on by default.
+                            Toggle(policyLabel(key),isOn:Binding(get:{policies[key] ?? (key != "dotOutlookWatch")},set:{value in policies[key]=value;control("settings",[key:value])}))
                         }
                         Button(paused ? "Resume Automation":"Pause Automation") {control("pause",["paused":!paused])}
                         Button("Check In Now") {control("checkIn")}
@@ -124,7 +125,7 @@ NavigationStack {
         }
     }
     private func policyLabel(_ key:String)->String {
-        switch key{case "dotCheckIns":return "Weekday check-ins";case "dotWatchWaiting":return "Brief me when a chat needs me";case "dotSummarizeFinished":return "Summarize finished work";default:return "Watch email"}
+        switch key{case "dotCheckIns":return "Weekday check-ins";case "dotWatchWaiting":return "Brief me when a chat needs me";case "dotSummarizeFinished":return "Summarize finished work";case "dotOutlookWatch":return "Watch Outlook in Chrome";default:return "Watch email"}
     }
 }
 /// One journal entry from Golem's service. `group` files it like Chatterbox's pages ("project",
@@ -188,11 +189,22 @@ struct GolemJournalMobile:View {
                 } message: { Text("Install Chatterbox and pair it with this Mac to open the original chat. Your briefing remains available here.") }
         }
     }
+    /// Plain text with its web addresses made tappable (Outlook summaries carry links).
+    static func linked(_ text:String)->AttributedString {
+        var out=AttributedString(text)
+        guard let detector=try? NSDataDetector(types:NSTextCheckingResult.CheckingType.link.rawValue) else{return out}
+        for match in detector.matches(in:text,range:NSRange(text.startIndex...,in:text)).reversed() {
+            guard let url=match.url,let range=Range(match.range,in:text),
+                  let lower=AttributedString.Index(range.lowerBound,within:out),let upper=AttributedString.Index(range.upperBound,within:out) else{continue}
+            out[lower..<upper].link=url
+        }
+        return out
+    }
     private func row(_ entry:GolemJournalEntry)->some View {
         VStack(alignment:.leading,spacing:6){
             Text(entry.title).font(.headline)
             if let name=entry.chatName,entry.page != .golem{Text(name).font(.subheadline).foregroundStyle(.secondary)}
-            if let detail=entry.detail{Text(detail)}
+            if let detail=entry.detail{Text(Self.linked(detail))}
             Text(entry.date.formatted()).font(.caption).foregroundStyle(.secondary)
             if let chat=entry.chat,entry.page != .golem {
                 Button("Open in Chatterbox") {
